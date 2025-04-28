@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Template", "AuthMS\Template.csproj", "{9F94BD3B-5FA3-41D7-9BD3-9DD8109B28FF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentMS", "AuthMS\PaymentMS.csproj", "{9F94BD3B-5FA3-41D7-9BD3-9DD8109B28FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{F212A653-649F-4675-A940-6106C93464C3}"
 EndProject

@@ -50,7 +50,7 @@ namespace Infrastructure.Persistence
 
             modelBuilder.Entity<PaymentStatus>(entity =>
             {
-                entity.ToTable("PaymentMethod");
+                entity.ToTable("PaymentStatus");
                 entity.HasKey(p => p.Id);
                 entity.Property(p => p.Name).HasColumnType("varchar(25)").IsRequired();
             });
