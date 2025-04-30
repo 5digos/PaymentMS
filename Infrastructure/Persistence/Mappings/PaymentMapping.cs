@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Interfaces.IServices
+namespace Infrastructure.Persistence.Mappings
 {
-    interface Interface1
+    internal class PaymentMapping
     {
     }
 }
