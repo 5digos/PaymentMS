@@ -10,7 +10,6 @@ namespace Application.Interfaces.IServices
 {
     public interface ICreatePaymentService
     {
-        Task<PaymentResponse> CreatePaymentAsync(PaymentRequest request);
-    }
-
+        Task<Guid> CreatePayment(CreatePaymentRequestDto paymentResponseDto);
+    } 
 }

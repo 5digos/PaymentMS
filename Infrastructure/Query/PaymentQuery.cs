@@ -12,7 +12,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Infrastructure.Query
 {
-    public class PaymentQuery : IPaymentQuery
+    public class PaymentQuery : IPaymentQuery 
     {
         private readonly AppDbContext _context;
 
@@ -21,13 +21,13 @@ namespace Infrastructure.Query
             _context = context;
         }
 
-        public async Task<List<Payment>> GetAllPayments()
+        public async Task<List<Payment>> GetAllPaymentsAsync()
         {
             var payments = _context.Payments.ToListAsync();
             return await payments;
         }
 
-        public async Task<Payment> GetPaymentById(Guid paymentId)
+        public async Task<Payment?> GetPaymentByIdAsync(Guid paymentId)
         {
             var payment = await _context.Payments
                 .Include(p => p.ReservationId)
@@ -35,14 +35,14 @@ namespace Infrastructure.Query
                 .Include(p => p.PaymentStatus)
                 .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
 
-            if(payment == null)
+            if (payment == null)
             {
                 return null;
             }
             return payment;
         }
 
-        public async Task<List<Payment>> GetPaymentsByDate(DateTime date)
+        public async Task<List<Payment>> GetPaymentsByDateAsync(DateTime date)
         {
             var payments = await _context.Payments
                 .Include(p => p.ReservationId)
@@ -54,25 +54,36 @@ namespace Infrastructure.Query
             return payments;
         }
 
-        public async Task<List<Payment>> GetPaymentByReservationId(Guid reservationId)
+        public async Task<Payment?> GetPaymentByReservationIdAsync(Guid reservationId)
         {
-            var payments = await _context.Payments
+            var payment = await _context.Payments
                 .Include(p => p.ReservationId)
                 .Include(p => p.PaymentMethodId)
                 .Include(p => p.PaymentStatus)
-                .Where(p => p.ReservationId == reservationId)
-                .ToListAsync();
+                .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
 
-            return payments;
+            return payment;
         }
 
-        public async Task<List<Payment>> GetPaymentsByStatusId(int status)
+        public async Task<List<Payment>> GetPaymentsByStatusIdAsync(int status)
         {
             var payments = await _context.Payments
                 .Include(p => p.ReservationId)
                 .Include(p => p.PaymentMethodId)
                 .Include(p => p.PaymentStatus)
                 .Where(p => p.PaymentStatusId == status)
+                .ToListAsync();
+
+            return payments;
+        }
+
+        public async Task<List<Payment>> GetPaymentsByMethodIdAsync(int paymentMethodId)
+        {
+            var payments = await _context.Payments
+                .Include(p => p.ReservationId)
+                .Include(p => p.PaymentMethodId)
+                .Include(p => p.PaymentStatus)
+                .Where(p => p.PaymentMethodId == paymentMethodId)
                 .ToListAsync();
 
             return payments;

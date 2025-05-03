@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Dtos.Response;
 using Application.Interfaces.IServices;
 using Domain.Entities;
 
 namespace Application.UseCase
 {
-    class GetPaymentService : IGetPaymentService  
+    public class GetPaymentService : IGetPaymentService  
     {
         private readonly IPaymentQuery _paymentQuery;
 
@@ -17,29 +18,44 @@ namespace Application.UseCase
             _paymentQuery = paymentQuery;
         }
 
-        public Task<List<Payment>> GetAllPaymentsAsync()
+        public async Task<List<Payment>> GetAllPayments()
         {
-            return _paymentQuery.GetAllPayments();
+            return await _paymentQuery.GetAllPaymentsAsync();
         }
 
-        public Task<Payment> GetPaymentByIdAsync(Guid id)
-        { 
-            return _paymentQuery.GetPaymentById(id);
+        public async Task<PaymentResponseDto> GetPaymentById(Guid id)
+        {
+            var payment = await _paymentQuery.GetPaymentByIdAsync(id);
+
+            if (payment == null)
+            {
+                return null;
+            }
+
+            return new PaymentResponseDto
+            {
+                PaymentId = payment.PaymentId,
+                ReservationId = payment.ReservationId, 
+                Amount = payment.Amount,
+                Date = payment.Date,
+                PaymentMethodName = payment.PaymentMethod?.Name ?? "",
+                PaymentStatusName = payment.PaymentStatus?.Name ?? "",
+            };
         }
 
-        public Task<List<Payment>> GetPaymentByReservationIdAsync(Guid reservationId)
+        public async Task<Payment?> GetPaymentByReservationId(Guid reservationId)
         {
-            return _paymentQuery.GetPaymentByReservationId(reservationId);
+            return await _paymentQuery.GetPaymentByReservationIdAsync(reservationId);
         }
 
-        public Task<List<Payment>> GetPaymentsByMethodIdAsync(int methodId)
+        public async Task<List<Payment>> GetPaymentsByMethodId(int methodId)
         {
-            return _paymentQuery.GetPaymentsByMethodId(methodId); 
+            return  await _paymentQuery.GetPaymentsByMethodIdAsync(methodId);
         }
 
-        public Task<List<Payment>> GetPaymentsByStatusIdAsync(int statusId)
+        public async Task<List<Payment>> GetPaymentsByStatusId(int statusId)
         {
-            return _paymentQuery.GetPaymentsByStatusId(statusId); 
+            return await _paymentQuery.GetPaymentsByStatusIdAsync(statusId);
         }
     }
 }

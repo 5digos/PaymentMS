@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Dtos.Request;
 using Application.Interfaces.ICommand;
+using Azure.Core;
 using Domain.Entities;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Command 
 {
-    class PaymentCommand : IPaymentCommand  
+    public class PaymentCommand : IPaymentCommand  
     {  
         private readonly AppDbContext _context;
 
@@ -18,8 +21,17 @@ namespace Infrastructure.Command
             _context = context;
         }
 
-        public async Task<Guid> CreatePaymentAsync (Payment payment)
+        public async Task<Guid> CreatePaymentAsync (Guid reservationId, decimal amount, int paymentMethodId)
         {
+            var payment = new Payment
+            {
+                PaymentId = Guid.NewGuid(),
+                ReservationId = reservationId,
+                Amount = amount,
+                Date = DateTime.UtcNow,
+                PaymentStatusId = 1, // Pendiente
+                PaymentMethodId = paymentMethodId,
+            };
             await _context.Payments.AddAsync(payment);
             await _context.SaveChangesAsync();
             return payment.PaymentId;
@@ -45,11 +57,20 @@ namespace Infrastructure.Command
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdatePaymentStatusAsync(Payment payment, int status)
+        public async Task<bool> UpdatePaymentStatusAsync(Guid paymentId, int newStatusId) 
         {
-            payment.PaymentStatusId = status;
-            _context.Payments.Update(payment);
+            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+
+            if (payment == null)
+            {
+                return false;
+            }
+
+            payment.PaymentStatusId = newStatusId;
             await _context.SaveChangesAsync();
+
+            return true;
+
         }
     }
 }

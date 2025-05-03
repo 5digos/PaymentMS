@@ -11,22 +11,24 @@ namespace PaymentMS.Controllers
     [ApiController]
     public class PaymentsController : ControllerBase
     {
-        private readonly ICreatePaymentService _paymentService;
-        private readonly IGetPaymentService _paymentGetService; 
+        private readonly ICreatePaymentService _createPaymentService;
+        private readonly IGetPaymentService _getPaymentService; 
+        private readonly IUpdatePaymentStatusService _updatePaymentService;
 
-        public PaymentsController(ICreatePaymentService paymentService, IGetPaymentService paymentGetService)
+        public PaymentsController(ICreatePaymentService createPaymentService, IGetPaymentService getPaymentService, IUpdatePaymentStatusService updatePaymentService)
         {
-            _paymentService = paymentService;
-            _paymentGetService = paymentGetService;
+            _createPaymentService = createPaymentService;
+            _getPaymentService = getPaymentService;
+            _updatePaymentService = updatePaymentService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePayment([FromBody] PaymentRequest request)
+        public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequestDto request)
         {
             try
             {
-                var payment = await _paymentService.CreatePaymentAsync(request);
-                return CreatedAtAction(nameof(GetPaymentById), new { id = payment.PaymentId }, payment);
+                var paymentId = await _createPaymentService.CreatePayment(request);
+                return CreatedAtAction(nameof(GetPaymentById), new { id = paymentId }, paymentId);
             }
             catch (Exception ex)
             {
@@ -37,12 +39,36 @@ namespace PaymentMS.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPaymentById(Guid id)
         {
-            var payment = await _paymentGetService.GetPaymentByIdAsync(id); 
+            var payment = await _getPaymentService.GetPaymentById(id); 
             if (payment == null)
             {
                 return NotFound();
             }
             return Ok(payment);
+        }
+
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] UpdatePaymentStatusRequestDto request)
+        {
+            try
+            {
+                if (id != request.PaymentId)
+                {
+                    return BadRequest("Payment ID mismatch.");
+                }
+
+                var success = await _updatePaymentService.UpdatePaymentStatus(request);
+                if (!success)
+                {
+                    return NotFound();
+                }
+                return NoContent();
+            }
+
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

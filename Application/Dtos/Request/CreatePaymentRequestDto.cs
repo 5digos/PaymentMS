@@ -7,12 +7,11 @@ using Domain.Entities;
 
 namespace Application.Dtos.Request
 {
-    public class PaymentRequest
+    public class CreatePaymentRequestDto
     {
         public Guid ReservationId { get; set; }
         public decimal Amount { get; set; }
         public int PaymentMethodId { get; set; }
-        public PaymentMethod PaymentMethod { get; set; }
         
     }
 }
