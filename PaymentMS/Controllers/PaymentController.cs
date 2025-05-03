@@ -62,7 +62,9 @@ namespace PaymentMS.Controllers
                 {
                     return NotFound();
                 }
-                return NoContent();
+                // Traer el estado actualizado y devolverlo en el body
+                var updatedPayment = await _getPaymentService.GetPaymentById(id);
+                return Ok(updatedPayment);
             }
 
             catch (Exception ex)

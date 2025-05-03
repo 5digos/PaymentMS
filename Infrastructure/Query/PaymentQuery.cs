@@ -30,8 +30,8 @@ namespace Infrastructure.Query
         public async Task<Payment?> GetPaymentByIdAsync(Guid paymentId)
         {
             var payment = await _context.Payments
-                .Include(p => p.ReservationId)
-                .Include(p => p.PaymentMethodId)
+                //.Include(p => p.ReservationId)
+                .Include(p => p.PaymentMethod) 
                 .Include(p => p.PaymentStatus)
                 .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
 
@@ -45,8 +45,8 @@ namespace Infrastructure.Query
         public async Task<List<Payment>> GetPaymentsByDateAsync(DateTime date)
         {
             var payments = await _context.Payments
-                .Include(p => p.ReservationId)
-                .Include(p => p.PaymentMethodId)
+                //.Include(p => p.ReservationId)
+                .Include(p => p.PaymentMethod)
                 .Include(p => p.PaymentStatus)
                 .Where(p => p.Date == date)
                 .ToListAsync();
@@ -57,8 +57,8 @@ namespace Infrastructure.Query
         public async Task<Payment?> GetPaymentByReservationIdAsync(Guid reservationId)
         {
             var payment = await _context.Payments
-                .Include(p => p.ReservationId)
-                .Include(p => p.PaymentMethodId)
+                //.Include(p => p.ReservationId)
+                .Include(p => p.PaymentMethod)
                 .Include(p => p.PaymentStatus)
                 .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
 
@@ -68,8 +68,8 @@ namespace Infrastructure.Query
         public async Task<List<Payment>> GetPaymentsByStatusIdAsync(int status)
         {
             var payments = await _context.Payments
-                .Include(p => p.ReservationId)
-                .Include(p => p.PaymentMethodId)
+                //.Include(p => p.ReservationId)
+                .Include(p => p.PaymentMethod)
                 .Include(p => p.PaymentStatus)
                 .Where(p => p.PaymentStatusId == status)
                 .ToListAsync();
@@ -80,8 +80,8 @@ namespace Infrastructure.Query
         public async Task<List<Payment>> GetPaymentsByMethodIdAsync(int paymentMethodId)
         {
             var payments = await _context.Payments
-                .Include(p => p.ReservationId)
-                .Include(p => p.PaymentMethodId)
+                //.Include(p => p.ReservationId)
+                .Include(p => p.PaymentMethod)
                 .Include(p => p.PaymentStatus)
                 .Where(p => p.PaymentMethodId == paymentMethodId)
                 .ToListAsync();
