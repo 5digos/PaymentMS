@@ -7,15 +7,15 @@ using Application.Dtos.Request;
 
 namespace PaymentMS.Controllers
 {
-    [Route("api/v1/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
-    public class PaymentsController : ControllerBase
+    public class PaymentController : ControllerBase
     {
         private readonly ICreatePaymentService _createPaymentService;
         private readonly IGetPaymentService _getPaymentService; 
         private readonly IUpdatePaymentStatusService _updatePaymentService;
 
-        public PaymentsController(ICreatePaymentService createPaymentService, IGetPaymentService getPaymentService, IUpdatePaymentStatusService updatePaymentService)
+        public PaymentController(ICreatePaymentService createPaymentService, IGetPaymentService getPaymentService, IUpdatePaymentStatusService updatePaymentService)
         {
             _createPaymentService = createPaymentService;
             _getPaymentService = getPaymentService;

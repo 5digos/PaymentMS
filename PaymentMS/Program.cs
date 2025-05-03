@@ -22,8 +22,13 @@ builder.Configuration.AddUserSecrets<Program>();
 #endif
 
 //Database Context
-var connectionString = builder.Configuration["ConnectionString"];
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString
+, sqlOptions =>
+{
+    sqlOptions.EnableRetryOnFailure();
+    sqlOptions.MigrationsAssembly("Infrastructure");
+}));
 
 //Infrastructure services
 builder.Services.AddScoped<IPaymentQuery, PaymentQuery>(); 
@@ -83,7 +88,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//app.UseAuthorization();
+app.UseAuthorization(); 
 
 app.UseCors("AllowAll");
 
