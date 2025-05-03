@@ -11,11 +11,13 @@ namespace PaymentMS.Controllers
     [ApiController]
     public class PaymentsController : ControllerBase
     {
-        private readonly IPaymentService _paymentService;
+        private readonly ICreatePaymentService _paymentService;
+        private readonly IGetPaymentService _paymentGetService; 
 
-        public PaymentsController(IPaymentService paymentService)
+        public PaymentsController(ICreatePaymentService paymentService, IGetPaymentService paymentGetService)
         {
             _paymentService = paymentService;
+            _paymentGetService = paymentGetService;
         }
 
         [HttpPost]
@@ -35,7 +37,12 @@ namespace PaymentMS.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPaymentById(Guid id)
         {
-            return Ok();
+            var payment = await _paymentGetService.GetPaymentByIdAsync(id); 
+            if (payment == null)
+            {
+                return NotFound();
+            }
+            return Ok(payment);
         }
     }
 }

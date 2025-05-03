@@ -66,7 +66,7 @@ namespace Infrastructure.Query
             return payments;
         }
 
-        public async Task<List<Payment>> GetPaymentsByStatus(int status)
+        public async Task<List<Payment>> GetPaymentsByStatusId(int status)
         {
             var payments = await _context.Payments
                 .Include(p => p.ReservationId)

@@ -12,7 +12,9 @@ namespace Domain.Entities
         Task<List<Payment>> GetAllPayments();
         Task<List<Payment>> GetPaymentByReservationId(Guid reservationId);
         Task<List<Payment>> GetPaymentsByDate(DateTime date);
-        Task<List<Payment>> GetPaymentsByStatus(int status);
+        Task<List<Payment>> GetPaymentsByStatusId(int status);
+        Task<List<Payment>> GetPaymentsByMethodId(int methodId);
 
+        Task GetPaymentByMethodId(int methodId);
     }
 }

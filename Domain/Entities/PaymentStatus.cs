@@ -8,9 +8,8 @@ namespace Domain.Entities
 {
     public class PaymentStatus
     {
-        public int Id { get; set; }
+        public int Id { get; set; } // 1 - Pending, 2 - Aprobado, 3 - Rechazado
         public string Name { get; set; }
-
         public IList<Payment> Payments { get; set; }
     }
 }

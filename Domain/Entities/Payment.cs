@@ -15,7 +15,7 @@ namespace Domain.Entities
 
         public PaymentMethod PaymentMethod { get; set; }
         public int PaymentMethodId { get; set; }
-        public PaymentStatus PaymentStatus { get; set; }
+        public PaymentStatus PaymentStatus { get; set; } 
         public int PaymentStatusId { get; set; }
         
     }

@@ -11,13 +11,15 @@ using Domain.Entities;
 
 namespace Application.UseCase.Payments
 {
-    public class CreatePaymentUseCase : IPaymentService
+    public class CreatePaymentService : ICreatePaymentService
     {
         private readonly IPaymentCommand _paymentCommand;
+        private readonly IPaymentQuery _paymentQuery;
 
-        public CreatePaymentUseCase(IPaymentCommand paymentCommand)
+        public CreatePaymentService(IPaymentCommand paymentCommand, IPaymentQuery paymentQuery)
         {
             _paymentCommand = paymentCommand;
+            _paymentQuery = paymentQuery;
         }
 
         public async Task<PaymentResponse> CreatePaymentAsync(PaymentRequest request)
@@ -30,14 +32,15 @@ namespace Application.UseCase.Payments
                 PaymentStatusId = 1 // 1 = Pendiente
             };
 
-            // guardamos
-            var createdPayment = await _paymentCommand.AddPaymentAsync(payment);
+            var createdPaymentId= await _paymentCommand.CreatePaymentAsync(payment);
+
+            var paymentCreated = await _paymentQuery.GetPaymentById(createdPaymentId);
 
             // devolvemos DTO
             return new PaymentResponse
             {
-                PaymentId = createdPayment.PaymentId,
-                Amount = createdPayment.Amount,
+                PaymentId = paymentCreated.PaymentId,
+                Amount = paymentCreated.Amount,
                 Status = "Pending"
             };
         }   

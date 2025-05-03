@@ -9,8 +9,8 @@ using Infrastructure.Persistence;
 
 namespace Infrastructure.Command 
 {
-    class PaymentCommand : IPaymentCommand 
-    { 
+    class PaymentCommand : IPaymentCommand  
+    {  
         private readonly AppDbContext _context;
 
         public PaymentCommand(AppDbContext context)
@@ -25,7 +25,7 @@ namespace Infrastructure.Command
             return payment.PaymentId;
         }
 
-        public async void DeletePaymentAsync(int paymentId)
+        public async Task DeletePaymentAsync(Guid paymentId)
         {
             var payment = await _context.Payments.FindAsync(paymentId);
             if (payment != null)
@@ -39,11 +39,17 @@ namespace Infrastructure.Command
             }
         }
 
-        public async Task<Payment> AddPaymentAsync(Payment payment)
+        public async Task AddPaymentAsync(Payment payment)
         {
             await _context.Payments.AddAsync(payment);
             await _context.SaveChangesAsync();
-            return payment;
+        }
+
+        public async Task UpdatePaymentStatusAsync(Payment payment, int status)
+        {
+            payment.PaymentStatusId = status;
+            _context.Payments.Update(payment);
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -9,11 +9,13 @@ namespace Application.Interfaces.ICommand
 {
     public interface IPaymentCommand 
     {
-        Task<Guid> CreatePaymentAsync(Payment payment);
+        Task<Guid> CreatePaymentAsync(Payment payment); 
 
-        Task<Payment> AddPaymentAsync(Payment payment);
+        Task AddPaymentAsync(Payment payment);
 
-        void DeletePaymentAsync(int paymentId);
+        Task DeletePaymentAsync(Guid paymentId);
+
+        Task UpdatePaymentStatusAsync(Payment payment, int status);
     }
 
 }

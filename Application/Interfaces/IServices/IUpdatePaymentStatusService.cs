@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Application.Dtos.Request;
-using Application.Dtos.Response;
 
 namespace Application.Interfaces.IServices
 {
-    public interface IPaymentService
+    public interface IUpdatePaymentStatusService
     {
-        Task<PaymentResponse> CreatePaymentAsync(PaymentRequest request);
+        Task UpdatePaymentStatus(Guid paymentId, int status);
     }
-
 }
