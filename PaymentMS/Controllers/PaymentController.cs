@@ -52,14 +52,17 @@ namespace PaymentMS.Controllers
         {
             try
             {
+                Console.WriteLine("Entró al PUT de PaymentController");
+
                 if (id != request.PaymentId)
                 {
                     return BadRequest("Payment ID mismatch.");
                 }
 
                 var success = await _updatePaymentService.UpdatePaymentStatus(request);
-                if (!success)
+                if (success == false)
                 {
+                    Console.WriteLine("Error al actualizar el estado del pago.");
                     return NotFound();
                 }
                 // Traer el estado actualizado y devolverlo en el body

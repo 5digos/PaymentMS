@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System; 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +24,7 @@ namespace Infrastructure.Command
 
         public async Task<Guid> CreatePaymentAsync (Guid reservationId, decimal amount, int paymentMethodId)
         {
-            var payment = new Payment
+            var payment = new Payment 
             {
                 PaymentId = Guid.NewGuid(),
                 ReservationId = reservationId,
@@ -59,10 +60,14 @@ namespace Infrastructure.Command
 
         public async Task<bool> UpdatePaymentStatusAsync(Guid paymentId, int newStatusId) 
         {
+            Console.WriteLine($"Buscando PaymentId: {paymentId}");
+
             var payment = await _context.Payments.FirstOrDefaultAsync(p => p.PaymentId == paymentId);
 
             if (payment == null)
             {
+                Console.WriteLine("No se encontró el pago con ese ID.");
+
                 return false;
             }
 

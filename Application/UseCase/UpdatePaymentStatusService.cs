@@ -23,7 +23,7 @@ namespace Application.UseCase
 
         public async Task<bool> UpdatePaymentStatus(UpdatePaymentStatusRequestDto updatePaymentStatusRequestDto)
         {
-            return await _paymentCommand.UpdatePaymentStatusAsync(updatePaymentStatusRequestDto.PaymentId, updatePaymentStatusRequestDto.newStatusId);
+            return await _paymentCommand.UpdatePaymentStatusAsync(updatePaymentStatusRequestDto.PaymentId, updatePaymentStatusRequestDto.NewStatusId);
         }
     }
 }

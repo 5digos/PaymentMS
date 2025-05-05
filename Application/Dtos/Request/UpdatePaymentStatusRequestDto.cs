@@ -10,6 +10,6 @@ namespace Application.Dtos.Request
     public class UpdatePaymentStatusRequestDto
     {
         public Guid PaymentId { get; set; }
-        public int newStatusId { get; set; }
+        public int NewStatusId { get; set; }
     }
 }
