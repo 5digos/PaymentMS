@@ -10,30 +10,34 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Persistence.Mappings
 {
-    public class PaymentMapping : IEntityTypeConfiguration<Payment>
-    {
-        public void Configure(EntityTypeBuilder<Payment> builder)
-        {
-            builder.ToTable("Payments");
+    //public class PaymentMapping : IEntityTypeConfiguration<Payment>
+    //{
+    //    public void Configure(EntityTypeBuilder<Payment> builder)
+    //    {
+    //        builder.ToTable("Payments");
+    //        builder.HasKey(e => e.Id);
 
-            builder.HasKey(e => e.PaymentId);
-            builder.Property(e => e.PaymentId).HasColumnType("uniqueidentifier").ValueGeneratedOnAdd();
+    //        // Mapeo básico
+    //        builder.Property(e => e.Amount).HasColumnType("decimal(18,2)").IsRequired();
+    //        builder.Property(e => e.Currency).HasMaxLength(3).IsRequired();
+    //        builder.Property(e => e.Description).HasMaxLength(255);
+    //        builder.Property(e => e.ExternalId).HasMaxLength(50).IsRequired();
+    //        builder.Property(e => e.Reference).HasMaxLength(50).IsRequired();
+    //        builder.Property(e => e.CheckoutUrl).HasMaxLength(500);
 
-            builder.Property(e => e.ReservationId).HasColumnType("uniqueidentifier");
+    //        // Mapeo para el estado de pago
+    //        // Importante: Mapear Status como un enum y PaymentStatusId como un int
+    //        builder.Property(e => e.Status)
+    //               .HasConversion<int>(); // Convertir el enum a int
 
-            builder.Property(e => e.Date).HasColumnType("datetime");
+    //        builder.Property(e => e.PaymentStatusId)
+    //               .IsRequired(); // Ya es un int, no necesita conversión
 
-            builder.Property(e => e.Amount)
-            .IsRequired()
-            .HasColumnType("decimal(18,2)");
-
-            builder.HasOne(e => e.PaymentMethod)
-                .WithMany(p => p.Payments)
-                .HasForeignKey(e => e.PaymentMethodId);
-
-            builder.HasOne(e => e.PaymentStatus)
-                .WithMany(p => p.Payments)
-                .HasForeignKey(e => e.PaymentStatusId);
-        }
-    }
+    //        // Relación con PaymentStatusEntity
+    //        builder.HasOne<PaymentStatusEntity>()
+    //               .WithMany(ps => ps.Payments)
+    //               .HasForeignKey(p => p.PaymentStatusId)
+    //               .IsRequired();
+    //    }
+    //}
 }

@@ -12,81 +12,56 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Infrastructure.Query
 {
-    public class PaymentQuery : IPaymentQuery 
+    public class PaymentQuery : IPaymentQuery
     {
         private readonly AppDbContext _context;
-
-        public PaymentQuery (AppDbContext context)
+        public PaymentQuery(AppDbContext context)
         {
             _context = context;
         }
-
         public async Task<List<Payment>> GetAllPaymentsAsync()
         {
-            var payments = _context.Payments.ToListAsync();
-            return await payments;
-        }
-
-        public async Task<Payment?> GetPaymentByIdAsync(Guid paymentId)
-        {
-            var payment = await _context.Payments
-                //.Include(p => p.ReservationId)
-                .Include(p => p.PaymentMethod) 
-                .Include(p => p.PaymentStatus)
-                .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
-
-            if (payment == null)
-            {
-                return null;
-            }
-            return payment;
-        }
-
-        public async Task<List<Payment>> GetPaymentsByDateAsync(DateTime date)
-        {
-            var payments = await _context.Payments
-                //.Include(p => p.ReservationId)
+            return await _context.Payments
                 .Include(p => p.PaymentMethod)
-                .Include(p => p.PaymentStatus)
-                .Where(p => p.Date == date)
+                .Include(p => p.PaymentStatusEntity)
                 .ToListAsync();
-
-            return payments;
         }
-
-        public async Task<Payment?> GetPaymentByReservationIdAsync(Guid reservationId)
+        public async Task<Payment> GetPaymentByIdAsync(Guid id)
         {
-            var payment = await _context.Payments
-                //.Include(p => p.ReservationId)
+            return await _context.Payments
                 .Include(p => p.PaymentMethod)
-                .Include(p => p.PaymentStatus)
+                .Include(p => p.PaymentStatusEntity)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+        public async Task<Payment> GetPaymentByReservationIdAsync(Guid reservationId)
+        {
+            return await _context.Payments
+                .Include(p => p.PaymentMethod)
+                .Include(p => p.PaymentStatusEntity)
                 .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
-
-            return payment;
         }
-
-        public async Task<List<Payment>> GetPaymentsByStatusIdAsync(int status)
+        public async Task<Payment> GetPaymentByReferenceAsync(string reference)
         {
-            var payments = await _context.Payments
-                //.Include(p => p.ReservationId)
+            return await _context.Payments
                 .Include(p => p.PaymentMethod)
-                .Include(p => p.PaymentStatus)
-                .Where(p => p.PaymentStatusId == status)
-                .ToListAsync();
-
-            return payments;
+                .Include(p => p.PaymentStatusEntity)
+                .FirstOrDefaultAsync(p => p.Reference == reference);
         }
-
-        public async Task<List<Payment>> GetPaymentsByMethodIdAsync(int paymentMethodId)
+        public async Task<List<Payment>> GetPaymentsByMethodIdAsync(int methodId)
         {
-            var payments = await _context.Payments
-                //.Include(p => p.ReservationId)
+            return await _context.Payments
                 .Include(p => p.PaymentMethod)
-                .Include(p => p.PaymentStatus)
-                .Where(p => p.PaymentMethodId == paymentMethodId)
+                .Include(p => p.PaymentStatusEntity)
+                .Where(p => p.PaymentMethodId == methodId)
                 .ToListAsync();
-
-            return payments;
+        }
+        public async Task<List<Payment>> GetPaymentsByStatusIdAsync(int statusId)
+        {
+            return await _context.Payments
+                .Include(p => p.PaymentMethod)
+                .Include(p => p.PaymentStatusEntity)
+                .Where(p => p.PaymentStatusId == statusId)
+                .ToListAsync();
         }
     }
 }

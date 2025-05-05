@@ -7,9 +7,9 @@ using Application.Dtos.Request;
 using Application.Dtos.Response;
 using Domain.Entities;
 
-namespace Application.Interfaces.IServices
+namespace Application.Interfaces.Gateway
 {
-    public interface ICreatePaymentService
+    public interface IPaymentGateway
     {
         Task<PaymentResponseDto> CreatePaymentAsync(CreatePaymentRequestDto request);
         Task<PaymentStatus> GetPaymentStatusAsync(string externalId);

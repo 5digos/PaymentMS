@@ -1,85 +1,50 @@
-using Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using System.Reflection;
-using Application.Interfaces;
-using Application.UseCase;
-using Infrastructure.Command;
-using Infrastructure.Query;
-using Application.Interfaces.IServices;
-using Application.UseCase.Payments;
+using Application.Configuration;
+using Application.Interfaces.Gateway;
 using Application.Interfaces.ICommand;
+using Application.Interfaces.IServices;
+using Application.Services;
+using Application.UseCase;
 using Domain.Entities;
-
+using Infrastructure.Command;
+using Infrastructure.Persistence;
+using Infrastructure.Query;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Add services to the container
+// Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-#if DEBUG
-builder.Configuration.AddUserSecrets<Program>();
-#endif
-
-//Database Context
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString
-, sqlOptions =>
+// Configuración de AppSettings
+var appSettingsDict = new Dictionary<string, string>();
+var mercadoPagoSection = builder.Configuration.GetSection("MercadoPago");
+foreach (var child in mercadoPagoSection.GetChildren())
 {
-    sqlOptions.EnableRetryOnFailure();
-    sqlOptions.MigrationsAssembly("Infrastructure");
-}));
+    appSettingsDict[$"MercadoPago:{child.Key}"] = child.Value;
+}
+builder.Services.AddSingleton(new AppSettings(appSettingsDict));
 
-//Infrastructure services
-builder.Services.AddScoped<IPaymentQuery, PaymentQuery>(); 
+// Database
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// HttpClient
+builder.Services.AddHttpClient<IPaymentGateway, MercadoPagoService>();
+
+// Register services
 builder.Services.AddScoped<IPaymentCommand, PaymentCommand>();
-
-//Application services
-builder.Services.AddScoped<ICreatePaymentService, CreatePaymentService>(); 
+builder.Services.AddScoped<IPaymentQuery, PaymentQuery>();
+builder.Services.AddScoped<ICreatePaymentService, CreatePaymentService>();
 builder.Services.AddScoped<IGetPaymentService, GetPaymentService>();
 builder.Services.AddScoped<IUpdatePaymentStatusService, UpdatePaymentStatusService>();
-
-//Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "PaymentMS", Version = "1.0" });
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    options.IncludeXmlComments(xmlPath);
-});
-
-
-//CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-    });
-});
+builder.Services.AddScoped<IPaymentGateway, MercadoPagoService>();
 
 var app = builder.Build();
 
-
-app.Use(async (context, next) =>
-{
-    //continúa con la solicitud
-    await next();
-
-    //si el estado de la respuesta es 401 (No autorizado), añade los encabezados CORS
-    if (context.Response.StatusCode == 401)
-    {
-        context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-        context.Response.Headers.Add("Access-Control-Allow-Headers", "Authorization, Content-Type");
-
-    }
-});
-
-//configure the HTTP request pipeline.
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -87,11 +52,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization(); 
-
-app.UseCors("AllowAll");
-
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

@@ -9,7 +9,7 @@ using Domain.Entities;
 
 namespace Application.UseCase
 {
-    public class GetPaymentService : IGetPaymentService  
+    public class GetPaymentService : IGetPaymentService
     {
         private readonly IPaymentQuery _paymentQuery;
 
@@ -25,6 +25,11 @@ namespace Application.UseCase
 
         public async Task<PaymentResponseDto> GetPaymentById(Guid id)
         {
+            return await GetPaymentByIdAsync(id);
+        }
+
+        public async Task<PaymentResponseDto> GetPaymentByIdAsync(Guid id)
+        {
             var payment = await _paymentQuery.GetPaymentByIdAsync(id);
 
             if (payment == null)
@@ -34,23 +39,29 @@ namespace Application.UseCase
 
             return new PaymentResponseDto
             {
-                PaymentId = payment.PaymentId,
-                ReservationId = payment.ReservationId, 
+                Id = payment.Id,
+                Reference = payment.Reference,
+                ExternalId = payment.ExternalId,
                 Amount = payment.Amount,
-                Date = payment.Date,
-                PaymentMethodName = payment.PaymentMethod?.Name ?? "",
-                PaymentStatusName = payment.PaymentStatus?.Name ?? "",
+                Status = payment.Status.ToString(),
+                CheckoutUrl = payment.CheckoutUrl,
+                CreatedAt = payment.CreatedAt
             };
         }
 
-        public async Task<Payment?> GetPaymentByReservationId(Guid reservationId)
+        public async Task<Payment> GetPaymentByReservationId(Guid reservationId)
         {
             return await _paymentQuery.GetPaymentByReservationIdAsync(reservationId);
         }
 
+        public async Task<Payment> GetPaymentByReferenceAsync(string reference)
+        {
+            return await _paymentQuery.GetPaymentByReferenceAsync(reference);
+        }
+
         public async Task<List<Payment>> GetPaymentsByMethodId(int methodId)
         {
-            return  await _paymentQuery.GetPaymentsByMethodIdAsync(methodId);
+            return await _paymentQuery.GetPaymentsByMethodIdAsync(methodId);
         }
 
         public async Task<List<Payment>> GetPaymentsByStatusId(int statusId)

@@ -12,10 +12,13 @@ namespace PaymentMS.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly ICreatePaymentService _createPaymentService;
-        private readonly IGetPaymentService _getPaymentService; 
+        private readonly IGetPaymentService _getPaymentService;
         private readonly IUpdatePaymentStatusService _updatePaymentService;
 
-        public PaymentController(ICreatePaymentService createPaymentService, IGetPaymentService getPaymentService, IUpdatePaymentStatusService updatePaymentService)
+        public PaymentController(
+            ICreatePaymentService createPaymentService,
+            IGetPaymentService getPaymentService,
+            IUpdatePaymentStatusService updatePaymentService)
         {
             _createPaymentService = createPaymentService;
             _getPaymentService = getPaymentService;
@@ -27,8 +30,8 @@ namespace PaymentMS.Controllers
         {
             try
             {
-                var paymentId = await _createPaymentService.CreatePayment(request);
-                return CreatedAtAction(nameof(GetPaymentById), new { id = paymentId }, paymentId);
+                var payment = await _createPaymentService.CreatePaymentAsync(request);
+                return CreatedAtAction(nameof(GetPaymentById), new { id = payment.Id }, payment);
             }
             catch (Exception ex)
             {
@@ -39,7 +42,7 @@ namespace PaymentMS.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPaymentById(Guid id)
         {
-            var payment = await _getPaymentService.GetPaymentById(id); 
+            var payment = await _getPaymentService.GetPaymentByIdAsync(id);
             if (payment == null)
             {
                 return NotFound();
@@ -57,16 +60,40 @@ namespace PaymentMS.Controllers
                     return BadRequest("Payment ID mismatch.");
                 }
 
-                var success = await _updatePaymentService.UpdatePaymentStatus(request);
+                var success = await _updatePaymentService.UpdatePaymentStatusAsync(request);
                 if (!success)
                 {
                     return NotFound();
                 }
+
                 // Traer el estado actualizado y devolverlo en el body
-                var updatedPayment = await _getPaymentService.GetPaymentById(id);
+                var updatedPayment = await _getPaymentService.GetPaymentByIdAsync(id);
                 return Ok(updatedPayment);
             }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
+        [HttpPost("webhook")]
+        public async Task<IActionResult> ProcessWebhook()
+        {
+            try
+            {
+                string payload;
+                using (var reader = new StreamReader(Request.Body))
+                {
+                    payload = await reader.ReadToEndAsync();
+                }
+
+                var payment = await _createPaymentService.ProcessWebhookAsync(payload);
+
+                // Actualizar el pago en la base de datos usando un servicio adecuado
+                // ...
+
+                return Ok();
+            }
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });

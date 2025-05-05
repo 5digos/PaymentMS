@@ -8,11 +8,11 @@ namespace Domain.Entities
 {
     public interface IPaymentQuery
     {
-        Task<Payment?> GetPaymentByIdAsync(Guid paymentId);
         Task<List<Payment>> GetAllPaymentsAsync();
-        Task<Payment?> GetPaymentByReservationIdAsync(Guid reservationId);
-        Task<List<Payment>> GetPaymentsByDateAsync(DateTime date);
-        Task<List<Payment>> GetPaymentsByStatusIdAsync(int status);
+        Task<Payment> GetPaymentByIdAsync(Guid id);
+        Task<Payment> GetPaymentByReservationIdAsync(Guid reservationId);
+        Task<Payment> GetPaymentByReferenceAsync(string reference);
         Task<List<Payment>> GetPaymentsByMethodIdAsync(int methodId);
+        Task<List<Payment>> GetPaymentsByStatusIdAsync(int statusId);
     }
 }

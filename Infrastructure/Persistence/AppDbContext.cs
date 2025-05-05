@@ -15,18 +15,28 @@ namespace Infrastructure.Persistence
 
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
-        public DbSet<PaymentStatus> PaymentStatuses { get; set; }
-
+        public DbSet<PaymentStatusEntity> PaymentStatuses { get; set; } // Cambiado a una entidad
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(@"Server=DESKTOP-ALEJO;Database=PaymentMS;Trusted_Connection=True;TrustServerCertificate=true;");
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.PaymentStatusEntity)
+                .WithMany()
+                .HasForeignKey(p => p.PaymentStatusId);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.PaymentMethod)
+                .WithMany()
+                .HasForeignKey(p => p.PaymentMethodId);
 
             //seeders
             PaymentMethodSeeder.Seed(modelBuilder);
             PaymentStatusSeeder.Seed(modelBuilder);
-
         }
     }
 }
