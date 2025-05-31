@@ -5,15 +5,19 @@ using MercadoPago.Resource.Preference;
 using System.Text.Json;
 using Infrastructure.HttpClients.Dtos;
 using RestSharp;
+using MercadoPago.Client.Payment;
 
 public class MercadoPagoService
 {
+    private readonly string _accessToken;
+
     public MercadoPagoService(string accessToken)
     {
+        _accessToken = accessToken;
         MercadoPagoConfig.AccessToken = accessToken;
     }
 
-    public async Task<string> CreatePreferenceAsync(string title, decimal amount)
+    public async Task<string> CreatePreferenceAsync(string title, decimal amount, Guid paymentId)
     {
         var client = new PreferenceClient();
 
@@ -32,36 +36,30 @@ public class MercadoPagoService
             },
             BackUrls = new PreferenceBackUrlsRequest
             {
-                Success = "https://tuweb.com/pago-exitoso",
+                Success = "https://tuweb.com/pago-exitoso", //de la url hay que sacar el paymentId para poder usarlo en el [HttpPost("verify/{mercadoPagoPaymentId:long}")]
                 Failure = "https://tuweb.com/pago-fallido",
                 Pending = "https://tuweb.com/pago-pendiente"
             },
-            AutoReturn = "approved"
+            AutoReturn = "approved",
+            //NotificationUrl = "https://localhost:7052/api/payments/notifications",//configurar para que tome la url base
+            ExternalReference = paymentId.ToString()
         };
 
         Preference preference = await client.CreateAsync(request);
         return preference.InitPoint; // Este es el link que redirige al Checkout Pro
     }
 
-    public async Task<MercadoPagoPaymentInfo> GetPaymentInfoAsync(long paymentId) 
+
+    public async Task<MercadoPagoPaymentInfo> GetPaymentInfoAsync(long paymentId)
     {
-        var client = new RestClient("https://api.mercadopago.com"); 
-        var request = new RestRequest($"/v1/payments/{paymentId}", Method.Get);
-        request.AddHeader("Authorization", "Bearer TU_ACCESS_TOKEN");
-
-        var response = await client.ExecuteAsync(request);
-        if (!response.IsSuccessful)
-            throw new Exception("No se pudo obtener el pago");
-
-        var json = JsonDocument.Parse(response.Content!);
-        var status = json.RootElement.GetProperty("status").GetString();
-        var transactionId = json.RootElement.GetProperty("id").GetInt64().ToString();
+        var client = new PaymentClient();
+        var payment = await client.GetAsync(paymentId);
 
         return new MercadoPagoPaymentInfo
         {
-            Status = status!,
-            TransactionId = transactionId
+            Status = payment.Status,
+            TransactionId = payment.Id.ToString(),
+            ExternalReference = payment.ExternalReference
         };
     }
-
 }

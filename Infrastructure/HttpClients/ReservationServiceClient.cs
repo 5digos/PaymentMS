@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Dtos.Request;
 using Application.Dtos.Response;
 using Application.Interfaces.IServices.IReservationServices;
 using Infrastructure.HttpClients.Dtos;
@@ -36,5 +37,13 @@ namespace Infrastructure.HttpClients
                 HourlyRateSnapshot = reserv.HourlyRateSnapshot
             };
         }
+
+        public async Task ConfirmPayment(Guid reservationId, PaymentConfirmationRequest request) 
+        {
+            //realizo un post para confirmar el pago;
+            var response = await _httpClient.PostAsJsonAsync($"api/reservations/{reservationId}/payment", request);
+            response.EnsureSuccessStatusCode();
+        }
+
     }
 }

@@ -17,6 +17,13 @@ using Infrastructure.HttpClients;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Esto debería estar por defecto
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Information); // Nivel mínimo
+
+
+
 //Add services to the container
 builder.Services.AddControllers();
 
@@ -53,7 +60,12 @@ builder.Services.AddScoped<IGetPaymentService, GetPaymentService>();
 builder.Services.AddScoped<IUpdatePaymentStatusService, UpdatePaymentStatusService>();
 builder.Services.AddScoped<IPaymentCalculationService, PaymentCalculationService>();
 
-builder.Services.AddHttpClient<IReservationServiceClient, ReservationServiceClient>();
+builder.Services.AddHttpClient<IReservationServiceClient, ReservationServiceClient>(
+    client =>
+    {
+        client.BaseAddress = new Uri("https://localhost:7055");
+    });
+
 
 
 //Swagger
@@ -79,6 +91,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("La aplicación ha arrancado correctamente");
 
 
 app.Use(async (context, next) =>

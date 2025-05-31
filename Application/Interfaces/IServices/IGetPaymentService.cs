@@ -10,11 +10,12 @@ namespace Application.Interfaces.IServices
 {
     public interface IGetPaymentService
     {
-        Task<PaymentResponseDto> GetPaymentById(Guid id);
+        Task<PaymentResponseDto> GetPaymentResponseDtoById(Guid id);
         Task<Payment?> GetPaymentByReservationId(Guid reservationId);
         Task<List<Payment>> GetPaymentsByStatusId(int statusId);
         Task<List<Payment>> GetPaymentsByMethodId(int methodId);
         Task<List<Payment>> GetAllPayments();
+        Task<Payment?> GetPaymentByIdAsync(Guid id);
 
     }
 }

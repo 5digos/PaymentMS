@@ -17,6 +17,8 @@ namespace Application.Interfaces.ICommand
         Task DeletePaymentAsync(Guid paymentId);
 
         Task<bool> UpdatePaymentStatusAsync(Guid paymentId, int newstatusId);
+        Task UpdatePaymentAsync(Payment payment);
+
     }
 
 }

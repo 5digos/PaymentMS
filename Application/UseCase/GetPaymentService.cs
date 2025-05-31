@@ -9,7 +9,7 @@ using Domain.Entities;
 
 namespace Application.UseCase
 {
-    public class GetPaymentService : IGetPaymentService  
+    public class GetPaymentService : IGetPaymentService   
     {
         private readonly IPaymentQuery _paymentQuery;
 
@@ -23,7 +23,19 @@ namespace Application.UseCase
             return await _paymentQuery.GetAllPaymentsAsync();
         }
 
-        public async Task<PaymentResponseDto> GetPaymentById(Guid id)
+        public async Task<Payment?> GetPaymentByIdAsync(Guid id)
+        {
+            var payment = await _paymentQuery.GetPaymentByIdAsync(id);
+            if (payment == null)
+            {
+                return null;
+            }
+
+            return payment;
+        }
+
+
+        public async Task<PaymentResponseDto> GetPaymentResponseDtoById(Guid id)
         {
             var payment = await _paymentQuery.GetPaymentByIdAsync(id);
 

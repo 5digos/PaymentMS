@@ -58,6 +58,12 @@ namespace Infrastructure.Command
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdatePaymentAsync(Payment payment) 
+        {
+            _context.Payments.Update(payment);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<bool> UpdatePaymentStatusAsync(Guid paymentId, int newStatusId) 
         {
             Console.WriteLine($"Buscando PaymentId: {paymentId}");
