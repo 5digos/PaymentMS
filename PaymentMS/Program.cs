@@ -10,6 +10,9 @@ using Application.Interfaces.IServices;
 using Application.UseCase.Payments;
 using Application.Interfaces.ICommand;
 using Domain.Entities;
+using MercadoPago.Config;
+using Application.Interfaces.IServices.IReservationServices;
+using Infrastructure.HttpClients;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +33,16 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
     sqlOptions.MigrationsAssembly("Infrastructure");
 }));
 
+//MercadoPago
+builder.Services.AddScoped<MercadoPagoService>(sp => 
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var accessToken = config["MercadoPago:AccessToken"];
+    return new MercadoPagoService(accessToken);
+});
+
+
+
 //Infrastructure services
 builder.Services.AddScoped<IPaymentQuery, PaymentQuery>(); 
 builder.Services.AddScoped<IPaymentCommand, PaymentCommand>();
@@ -38,6 +51,10 @@ builder.Services.AddScoped<IPaymentCommand, PaymentCommand>();
 builder.Services.AddScoped<ICreatePaymentService, CreatePaymentService>(); 
 builder.Services.AddScoped<IGetPaymentService, GetPaymentService>();
 builder.Services.AddScoped<IUpdatePaymentStatusService, UpdatePaymentStatusService>();
+builder.Services.AddScoped<IPaymentCalculationService, PaymentCalculationService>();
+
+builder.Services.AddHttpClient<IReservationServiceClient, ReservationServiceClient>();
+
 
 //Swagger
 builder.Services.AddEndpointsApiExplorer();

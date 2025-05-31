@@ -22,6 +22,11 @@ namespace Application.UseCase.Payments
         public async Task<Guid> CreatePayment(CreatePaymentRequestDto request)
         {
             return await _paymentCommand.CreatePaymentAsync(request.ReservationId, request.Amount, request.PaymentMethodId);
-        }   
+        }
+
+        public async Task SavePayment(Payment payment)
+        {
+            await _paymentCommand.AddPaymentAsync(payment);
+        }
     }
 }
