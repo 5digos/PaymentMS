@@ -141,6 +141,7 @@ Prueba completa de flujo:
 
 1° Debe consumir una Reserva del MSReservas pasando el ID de la reserva como parametro en ( GET /api/Payment/reservation/{id}), obteniendo un Response del siguiente estilo :
 
+```json
 {
   "reservationId": "a1e2b3c4-d5f6-7890-ab12-34567890cd01",
   "userId": 101,
@@ -151,14 +152,17 @@ Prueba completa de flujo:
   "actualReturnTime": "2025-05-31T15:55:00Z",
   "hourlyRateSnapshot": 501
 }
+```
 
 2° Usar este response para crear un pago a partir de esa reserva en ( POST /api/Payment/from-reservation) enviando como requestBody al response obtenido en el paso anterior.
 Y se va a obtener de este POST una URL del CheckoutPro de MP, y el PaymentID del pago persistido en la Base de Datos:
 
+```json
 {
   "checkoutUrl": "https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=2286099976-220d6295-1111-1111-1111-44441f079f76",
   "paymentId": "9943b049-6180-4b19-bc43-2aa96c514364"
 }
+```
 
 3° Se debe ingresar a la CUENTA COMPRADOR DE PRUEBA de MP, para que, con la URL obtenida, se pueda proceder a realizar el pago.
 
