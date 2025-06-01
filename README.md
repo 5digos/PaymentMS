@@ -68,13 +68,16 @@ Para confirmar un pago, el servicio de pagos hace una llamada HTTP POST a:
 
 5. Flujo resumido:
 
-	Se consume una reserva desde el MS pagos y se calcula monto + recargos.
-	Se crea preferencia de pago en Mercado Pago con la referencia serializada.
-	Usuario completa el pago en Mercado Pago.
-	Mercado Pago llama al BackUrl /api/payment/pago-exitoso.
-	El endpoint interno verifica el pago consultando la API de Mercado Pago.
-	Actualiza estado local y notifica al microservicio de reservas.
-	El microservicio de reservas recibe la notificación y continua con el flujo.
+- Se consume una reserva desde el MS pagos y se calcula monto + recargos.
+- Se crea preferencia de pago en Mercado Pago con la referencia serializada.
+- Usuario completa el pago en Mercado Pago.
+- Mercado Pago llama al BackUrl:
+
+   			/api/payment/pago-exitoso.
+   
+- El endpoint interno verifica el pago consultando la API de Mercado Pago.
+- Actualiza estado local y notifica al microservicio de reservas.
+- El microservicio de reservas recibe la notificación y continua con el flujo.
 
 -------------
 
@@ -84,11 +87,13 @@ Para confirmar un pago, el servicio de pagos hace una llamada HTTP POST a:
 ## 1.1 Configurar Access Token de Mercado Pago
 
 a. **Obtener credenciales de Mercado Pago**:
+
 	- Regístrate o inicia sesión en [Mercado Pago Developers](https://www.mercadopago.com.ar/developers)
 	- Con la sesión iniciada, accedé a 'Tus integraciones'. Allí, haz clic en Crear aplicación y creala siguiendo los pasos.
 	- Ahora creá 2 cuentas de prueba: una de COMPRADOR para pagar y otra de VENDEDOR para recibir el pago.
-  - Ingresa a la cuenta de Vendedor y creá nuevamente una aplicacion con esa cuenta.
+  	- Ingresa a la cuenta de Vendedor y creá nuevamente una aplicacion con esa cuenta.
 	- Anda a la sección "Credenciales de producción" para obtener el ACCESS TOKEN.
+ 
   *(a la cuenta de Comprador vas a ingresar cuando tengas que efectur simulaciones de pago)*
 	
 Con el `Access Token` de la cuenta de VENDEDOR:
