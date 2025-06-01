@@ -38,11 +38,12 @@ namespace Infrastructure.HttpClients
             };
         }
 
-        public async Task ConfirmPaymentAsync(Guid reservationId, PaymentConfirmationRequest request) 
+        public async Task ConfirmPayment(Guid reservationId, PaymentConfirmationRequest request) 
         {
             //realizo un post para avisarle que se procesó el pago;
             var response = await _httpClient.PostAsJsonAsync($"api/reservations/{reservationId}/payment", request);
             response.EnsureSuccessStatusCode();
         }
+
     }
 }

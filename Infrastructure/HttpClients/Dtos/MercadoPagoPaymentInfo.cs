@@ -10,6 +10,7 @@ namespace Infrastructure.HttpClients.Dtos
     {
         public string Status { get; set; } = null!;
         public string TransactionId { get; set; } = null!;
+
         public string ExternalReference { get; set; } = null!;
     }
 

@@ -12,6 +12,12 @@ namespace Application.Dtos.Response
         public int UserId { get; set; }
         public Guid VehicleId { get; set; }
 
+        //public int PickupBranchOfficeId { get; set; }
+        //public string PickupBranchOfficeName { get; set; } = null!;
+
+        //public int DropOffBranchOfficeId { get; set; }
+        //public string DropOffBranchOfficeName { get; set; } = null!;
+
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 
@@ -21,5 +27,7 @@ namespace Application.Dtos.Response
 
         // Snapshot de tarifa y costos posteriores
         public decimal? HourlyRateSnapshot { get; set; }
+
+        //public ReservationStatus Status { get; set; }
     }
 }
