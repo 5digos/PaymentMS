@@ -8,25 +8,31 @@ using Application.Interfaces.IServices;
 
 namespace Application.UseCase
 {
-    public class PaymentCalculationService : IPaymentCalculationService 
+    public class PaymentCalculationService : IPaymentCalculationService  
     {
-        public decimal CalculateAmount(ReservationSummaryResponse reservation) 
+        public (decimal TotalAmount, decimal LateFee) CalculateAmount(ReservationSummaryResponse reservation)  
         {
             if (reservation.HourlyRateSnapshot == null)
                 throw new ArgumentException("No se puede calcular el precio sin tarifa.");
 
             var startTime = reservation.StartTime; //siempre el startTime es el que se seteó en la reserva
+            var rate = reservation.HourlyRateSnapshot.Value;
+
 
             // Si el usuario devolvió más tarde, se toma ese tiempo. Si no, se toma EndTime como se seteó de entrada
-            var endTime = (reservation.ActualReturnTime.HasValue && reservation.ActualReturnTime > reservation.EndTime)
+            var actualEndTime = (reservation.ActualReturnTime.HasValue && reservation.ActualReturnTime > reservation.EndTime)
                 ? reservation.ActualReturnTime.Value
                 : reservation.EndTime;
 
-            // Duración total redondeada hacia arriba
-            var duration = endTime - startTime;
-            var totalHours = Math.Ceiling(duration.TotalHours);
+            var totalHours = Math.Ceiling((actualEndTime - startTime).TotalHours);
+            var baseHours = Math.Ceiling((reservation.EndTime - startTime).TotalHours);
 
-            return (decimal)totalHours * reservation.HourlyRateSnapshot.Value;
+            var totalAmount = (decimal)totalHours * rate;
+            var baseAmount = (decimal)baseHours * rate;
+            var lateFee = totalAmount - baseAmount;
+
+            return (totalAmount, lateFee > 0 ? lateFee : 0); 
+
 
         }
     }

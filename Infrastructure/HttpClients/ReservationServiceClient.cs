@@ -19,14 +19,14 @@ namespace Infrastructure.HttpClients
             _httpClient = httpClient;
         }
 
-        public async Task<ReservationSummaryResponse> GetReservationAsync(Guid id)
+        public async Task<ReservationSummaryResponse> GetReservationAsync(Guid id) //obtengo la reserva
         {
             //llamo al GET /api/v1/Reservations/{id}
             var reserv = await _httpClient.GetFromJsonAsync<ReservationResponseDto>($"api/v1/Reservations/{id}");
             if (reserv == null || reserv.ReservationId == Guid.Empty)
                 throw new InvalidOperationException($"La reserva {id} no existe.");
 
-            return new ReservationSummaryResponse //mapeo a un resumen de la reserva
+            return new ReservationSummaryResponse //mapeo a un resumen de la reserva(para usar solo los datos que necesito)
             {
                 ReservationId = reserv.ReservationId,
                 UserId = reserv.UserId,
@@ -40,7 +40,7 @@ namespace Infrastructure.HttpClients
 
         public async Task ConfirmPayment(Guid reservationId, PaymentConfirmationRequest request) 
         {
-            //realizo un post para confirmar el pago;
+            //realizo un post para avisarle que se procesó el pago;
             var response = await _httpClient.PostAsJsonAsync($"api/reservations/{reservationId}/payment", request);
             response.EnsureSuccessStatusCode();
         }

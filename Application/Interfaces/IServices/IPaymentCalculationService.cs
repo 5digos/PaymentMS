@@ -9,6 +9,6 @@ namespace Application.Interfaces.IServices
 {
     public interface IPaymentCalculationService
     {
-        decimal CalculateAmount(ReservationSummaryResponse reservation);
+        (decimal TotalAmount, decimal LateFee) CalculateAmount(ReservationSummaryResponse reservation);
     }
 }
