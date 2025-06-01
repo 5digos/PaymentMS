@@ -1,7 +1,8 @@
 
-Descripción del flujo completo del pago de la reserva:
+# Descripción del flujo completo del pago de la reserva:
 
-- Contexto general
+## Contexto general
+
 Este microservicio (MS) permite realizar el pago a través de Mercado Pago de reservas consumidas del MS Reservation, incluyendo el cálculo de recargos por devolución de auto tardía. Se integra un microservicio de reservas con un microservicio de pagos, utilizando llamadas HTTP entre ellos y la API de Mercado Pago CheckoutPro para la gestión 'real' del pago.
 
 1. Creación de la preferencia de pago (CheckoutPro de Mercado Pago):
@@ -77,10 +78,10 @@ Para confirmar un pago, el servicio de pagos hace una llamada HTTP POST a:
 
 -------------
 
-CONFIGURACION: 
-## Paso 1: Configuración del Entorno
+# CONFIGURACION: 
+# Paso 1: Configuración del Entorno
 
-#1.1 Configurar Access Token de Mercado Pago
+## 1.1 Configurar Access Token de Mercado Pago
 
 a. **Obtener credenciales de Mercado Pago**:
 	- Regístrate o inicia sesión en [Mercado Pago Developers](https://www.mercadopago.com.ar/developers)
@@ -101,7 +102,7 @@ b. **Configuralo en appsettings.json**:
    }
    ```
 
-# 1.2 Configurar URLs de Callback y Notificaciones
+## 1.2 Configurar URLs de Callback y Notificaciones
 
 a. Usar la herramienta - ngrok - para exponer tu localhost, y obtener la url provista por - ngrok - y proceder a setearla en appsettings.json
 
@@ -119,7 +120,7 @@ Así las **URLs de Callback** se van a configurar automáticamente (serán utili
    - **Pending**: URL a la que el usuario será redirigido si el pago está pendiente
 
 
-# 1.3: Revisar y configurar los BaseUrl de HttpClient:
+## 1.3: Revisar y configurar los BaseUrl de HttpClient:
 
 a. Entrar en appsettings.json, y revisar que el port coincida con la dirección de Reservation.
 
@@ -129,7 +130,7 @@ a. Entrar en appsettings.json, y revisar que el port coincida con la dirección 
 }
 ```
 
-## Paso 2: Ejecutar el Microservicio MS 
+# Paso 2: Ejecutar el Microservicio MS 
 
 1. **En Visual Studio**:
    - Establece el proyecto PaymentMS como proyecto de inicio.
@@ -137,7 +138,7 @@ a. Entrar en appsettings.json, y revisar que el port coincida con la dirección 
 
 -------------
 
-Prueba completa de flujo:
+# Prueba completa de flujo:
 
 1° Debe consumir una Reserva del MSReservas pasando el ID de la reserva como parametro en ( GET /api/Payment/reservation/{id}), obteniendo un Response del siguiente estilo :
 
