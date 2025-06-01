@@ -41,13 +41,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 }));
 
 //MercadoPago
-builder.Services.AddScoped<MercadoPagoService>(sp => 
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var accessToken = config["MercadoPago:AccessToken"];
-    return new MercadoPagoService(accessToken);
-});
-
+builder.Services.AddScoped<MercadoPagoService>();
 
 
 //Infrastructure services
@@ -60,12 +54,11 @@ builder.Services.AddScoped<IGetPaymentService, GetPaymentService>();
 builder.Services.AddScoped<IUpdatePaymentStatusService, UpdatePaymentStatusService>();
 builder.Services.AddScoped<IPaymentCalculationService, PaymentCalculationService>();
 
-builder.Services.AddHttpClient<IReservationServiceClient, ReservationServiceClient>(
-    client =>
-    {
-        client.BaseAddress = new Uri("https://localhost:7055");
-    });
-
+var reservationServiceUrl = builder.Configuration["ReservationService:BaseUrl"];
+builder.Services.AddHttpClient<IReservationServiceClient, ReservationServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(reservationServiceUrl);
+});
 
 
 //Swagger

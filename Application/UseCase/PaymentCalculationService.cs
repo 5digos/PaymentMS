@@ -18,7 +18,6 @@ namespace Application.UseCase
             var startTime = reservation.StartTime; //siempre el startTime es el que se seteó en la reserva
             var rate = reservation.HourlyRateSnapshot.Value;
 
-
             // Si el usuario devolvió más tarde, se toma ese tiempo. Si no, se toma EndTime como se seteó de entrada
             var actualEndTime = (reservation.ActualReturnTime.HasValue && reservation.ActualReturnTime > reservation.EndTime)
                 ? reservation.ActualReturnTime.Value

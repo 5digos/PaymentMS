@@ -20,7 +20,7 @@ namespace PaymentMS.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly ICreatePaymentService _createPaymentService;
-        private readonly IGetPaymentService _getPaymentService; 
+        private readonly IGetPaymentService _getPaymentService;
         private readonly IUpdatePaymentStatusService _updatePaymentService;
         private readonly MercadoPagoService _mercadoPagoService;
         private readonly IPaymentCalculationService _paymentCalculationService;
@@ -41,7 +41,7 @@ namespace PaymentMS.Controllers
             _createPaymentService = createPaymentService;
             _getPaymentService = getPaymentService;
             _updatePaymentService = updatePaymentService;
-            _mercadoPagoService = mercadoPagoService; 
+            _mercadoPagoService = mercadoPagoService;
             _paymentCalculationService = paymentCalculationService;
             _reservationServiceClient = reservationServiceClient;
             _paymentCommand = paymentCommand;
@@ -70,12 +70,12 @@ namespace PaymentMS.Controllers
             {
                 var (totalAmount, lateFee) = _paymentCalculationService.CalculateAmount(dto); // Calculo el total a pagar y la tarifa de retraso
 
-                var title = $"Pago de la Reserva del vehículo con Id: {dto.VehicleId}"; 
+                var title = $"Pago de la Reserva del vehículo con Id: {dto.VehicleId}";
 
                 var paymentId = Guid.NewGuid(); //creo un id de pago para la db local
 
                 // 1. Crear preferencia en Mercado Pago
-                var checkoutUrl = await _mercadoPagoService.CreatePreferenceAsync(title, totalAmount, paymentId, lateFee); 
+                var checkoutUrl = await _mercadoPagoService.CreatePreferenceAsync(title, totalAmount, paymentId, lateFee);
 
                 // 2. Crear entidad Payment y guardarla (con estado pendiente)
                 var payment = new Payment
@@ -107,7 +107,7 @@ namespace PaymentMS.Controllers
         [HttpPost("verify/{mercadoPagoPaymentId:long}")]
         public async Task<IActionResult> VerifyPayment(long mercadoPagoPaymentId)
         {
-            
+
             try
             {
                 // Obtener el detalle del pago desde MercadoPago
@@ -117,7 +117,7 @@ namespace PaymentMS.Controllers
 
                 // Deserializar el ExternalReference para obtener el PaymentId y la LateFee
                 var referenceData = JsonSerializer.Deserialize<PaymentReferenceData>(paymentInfoMP.ExternalReference);
-                var paymentId = referenceData.PaymentId;  
+                var paymentId = referenceData.PaymentId;
                 var lateFee = referenceData.LateFee;
 
                 var payment = await _getPaymentService.GetPaymentByIdAsync(paymentId);
@@ -132,12 +132,12 @@ namespace PaymentMS.Controllers
                 if (paymentInfoMP.Status == "approved")
                 {
                     payment.PaymentStatusId = 2; // Aprobado
-                     
+
                     // Notificar a reserva
                     var confirmation = new PaymentConfirmationRequest
                     {
                         TotalAmount = payment.Amount,
-                        LateFee = lateFee, 
+                        LateFee = lateFee,
                         PaymentGateway = "MercadoPago",
                         TransactionId = paymentInfoMP.TransactionId
                     };
@@ -163,7 +163,7 @@ namespace PaymentMS.Controllers
                         $"-Id de la reserva asociada a este pago: {payment.ReservationId}\n" +
                         $"-Estado del pago actualizado a '{paymentInfoMP.Status}'.\n" +
                         $"-Pago total: {payment.Amount}.\n" +
-                        $"-Tarifa adicional cobrada por demora: {lateFee}.\n"+
+                        $"-Tarifa adicional cobrada por demora: {lateFee}.\n" +
                         $"-Transaccion Id de MercadoPago: {paymentInfoMP.TransactionId}."
                         );
 
@@ -193,7 +193,20 @@ namespace PaymentMS.Controllers
             return await VerifyPayment(mercadoPagoPaymentId);
         }
 
-        
+        /// <summary>
+        /// Obtengo un pago por su ID
+        /// </summary>
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetPaymentById(Guid id)
+        {
+            var payment = await _getPaymentService.GetPaymentResponseDtoById(id);
+            if (payment == null)
+            {
+                return NotFound();
+            }
+            return Ok(payment);
+        }
+
 
         /// <summary>
         /// Creo un nuevo pago
@@ -214,23 +227,8 @@ namespace PaymentMS.Controllers
 
 
         /// <summary>
-        /// Obtengo un pago por su ID
+        /// Actualizo el estado de un pago
         /// </summary>
-        [HttpGet("{id:guid}")] 
-        public async Task<IActionResult> GetPaymentById(Guid id)
-        {
-            var payment = await _getPaymentService.GetPaymentResponseDtoById(id); 
-            if (payment == null)
-            {
-                return NotFound();
-            }
-            return Ok(payment);
-        }
-
-
-        ///// <summary>
-        ///// Actualizo el estado de un pago
-        ///// </summary>
         //[HttpPut("{id}/status")]
         //public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] UpdatePaymentStatusRequestDto request)
         //{
