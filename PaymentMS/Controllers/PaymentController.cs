@@ -50,7 +50,7 @@ namespace PaymentMS.Controllers
 
 
         /// <summary>
-        /// Obtengo una reserva por su ID para efectuar el pago
+        /// Obtengo una reserva por su ID a la cual efectuarle el pago
         /// </summary>
         [HttpGet("reservation/{id}")]
         public async Task<IActionResult> GetReservationForPaymentById(Guid id)
@@ -63,14 +63,20 @@ namespace PaymentMS.Controllers
             return Ok(reservation);
         }
 
-        [HttpPost("from-reservation")]//ReservationSummaryResponse es el que recibimos de reservas y se lo mandamos a MercadoPago
+
+        /// <summary>
+        /// Crea un pago a partir de una reserva
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        [HttpPost("from-reservation")]//ReservationSummaryResponse es el que recibimos de reservas y se lo mandamos a MercadoPago, para crear el pago y el checkoutPro
         public async Task<IActionResult> CreatePaymentFromReservation([FromBody] ReservationSummaryResponse dto)
         {
             try
             {
                 var (totalAmount, lateFee) = _paymentCalculationService.CalculateAmount(dto); // Calculo el total a pagar y la tarifa de retraso
 
-                var title = $"Pago de la Reserva del vehículo con Id: {dto.VehicleId}";
+                var title = $"Pago de la Reserva del vehículo:  ";
 
                 var paymentId = Guid.NewGuid(); //creo un id de pago para la db local
 
@@ -103,11 +109,14 @@ namespace PaymentMS.Controllers
         }
 
 
-
+        /// <summary>
+        /// Verificar el pago aprobado en MercadoPago y actualizar el estado en la base de datos, notificando al microservicio de reservas, y cerrando el flujo.
+        /// </summary>
+        /// <param name="mercadoPagoPaymentId"></param>
+        /// <returns></returns>
         [HttpPost("verify/{mercadoPagoPaymentId:long}")]
         public async Task<IActionResult> VerifyPayment(long mercadoPagoPaymentId)
         {
-
             try
             {
                 // Obtener el detalle del pago desde MercadoPago
@@ -126,7 +135,6 @@ namespace PaymentMS.Controllers
 
                 if (payment.PaymentStatusId == 2 || payment.PaymentStatusId == 3)
                     return Ok("El pago ya fue procesado.");
-
 
                 // Actualizar estado según status de MercadoPago
                 if (paymentInfoMP.Status == "approved")
@@ -150,7 +158,6 @@ namespace PaymentMS.Controllers
                     {
                         _logger.LogError(notifyEx, "Error notificando al microservicio de reservas");
                     }
-
                 }
                 else if (paymentInfoMP.Status == "rejected" || paymentInfoMP.Status == "cancelled")
                 {
@@ -166,7 +173,6 @@ namespace PaymentMS.Controllers
                         $"-Tarifa adicional cobrada por demora: {lateFee}.\n" +
                         $"-Transaccion Id de MercadoPago: {paymentInfoMP.TransactionId}."
                         );
-
             }
             catch (Exception ex)
             {
@@ -175,22 +181,19 @@ namespace PaymentMS.Controllers
             }
         }
 
-        // GET: /api/payment/pago-exitoso
+        /// <summary>
+        /// MP ejecuta este GET automaticamente cuando el pago es aprobado y ejecuta VerifyPayment, confirmando el pago y notificando al microservicio de reservas
+        /// </summary>
+        /// <param name="paymentId"></param>
+        /// <returns></returns>
+        /// GET: /api/payment/pago-exitoso
         [HttpGet("pago-exitoso")]
-        public IActionResult PagoExitoso(
-                [FromQuery(Name = "payment_id")] long paymentId,
-                [FromQuery(Name = "external_reference")] string externalReference)
+        public async Task<IActionResult> PagoExitoso(
+                [FromQuery(Name = "payment_id")] long paymentId)
+                //[FromQuery(Name = "external_reference")] string externalReference*/)
         {
-            // Redirigís directamente al nuevo GET que ejecuta VerifyPayment
-            return Redirect($"/api/payment/verify-from-get?payment_id={paymentId}");
-        }
-
-        // GET: /api/payment/verify-from-get
-        [HttpGet("verify-from-get")]
-        public async Task<IActionResult> VerifyFromGet([FromQuery(Name = "payment_id")] long mercadoPagoPaymentId)
-        {
-            // Llamás al mismo servicio que el endpoint POST hace
-            return await VerifyPayment(mercadoPagoPaymentId);
+            //return Redirect($"/api/payment/verify-from-get?payment_id={paymentId}"); // Redirigís directamente al nuevo GET que ejecuta VerifyPayment
+            return await VerifyPayment(paymentId);
         }
 
         /// <summary>
@@ -207,57 +210,13 @@ namespace PaymentMS.Controllers
             return Ok(payment);
         }
 
-
-        /// <summary>
-        /// Creo un nuevo pago
-        /// </summary>
-        //[HttpPost]
-        //public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequestDto request)
+        //// GET: /api/payment/verify-from-get
+        //[HttpGet("verify-from-get")]
+        //public async Task<IActionResult> VerifyFromGet([FromQuery(Name = "payment_id")] long mercadoPagoPaymentId)
         //{
-        //    try
-        //    {
-        //        var paymentId = await _createPaymentService.CreatePayment(request);
-        //        return CreatedAtAction(nameof(GetPaymentById), new { id = paymentId }, paymentId);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
+        //    // Llamás al mismo servicio que el endpoint POST hace
+        //    return await VerifyPayment(paymentId);;
         //}
-
-
-        /// <summary>
-        /// Actualizo el estado de un pago
-        /// </summary>
-        //[HttpPut("{id}/status")]
-        //public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] UpdatePaymentStatusRequestDto request)
-        //{
-        //    try
-        //    {
-        //        Console.WriteLine("Entró al PUT de PaymentController");
-
-        //        if (id != request.PaymentId)
-        //        {
-        //            return BadRequest("Payment ID mismatch.");
-        //        }
-
-        //        var success = await _updatePaymentService.UpdatePaymentStatus(request);
-        //        if (success == false)
-        //        {
-        //            Console.WriteLine("Error al actualizar el estado del pago.");
-        //            return NotFound();
-        //        }
-        //        // Traer el estado actualizado y devolverlo en el body
-        //        var updatedPayment = await _getPaymentService.GetPaymentResponseDtoById(id);
-        //        return Ok(updatedPayment);
-        //    }
-
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
-
 
     }
 }
