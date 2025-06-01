@@ -11,6 +11,6 @@ namespace Application.Interfaces.IServices.IReservationServices
     public interface IReservationServiceClient
     {
         Task<ReservationSummaryResponse> GetReservationAsync(Guid id);
-        Task ConfirmPayment(Guid reservationId, PaymentConfirmationRequest request);
+        Task ConfirmPaymentAsync(Guid reservationId, PaymentConfirmationRequest request);
     }
 }

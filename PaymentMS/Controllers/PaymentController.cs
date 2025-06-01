@@ -63,6 +63,10 @@ namespace PaymentMS.Controllers
             return Ok(reservation);
         }
 
+
+        /// <summary>
+        /// Creo un pago a partir de una reserva (usando el response obtenido en HttpGet("reservation/{id}")
+        /// </summary>
         [HttpPost("from-reservation")]//ReservationSummaryResponse es el que recibimos de reservas y se lo mandamos a MercadoPago
         public async Task<IActionResult> CreatePaymentFromReservation([FromBody] ReservationSummaryResponse dto)
         {
@@ -103,11 +107,12 @@ namespace PaymentMS.Controllers
         }
 
 
-
+        /// <summary>
+        /// Verificacion automática del pago en MercadoPago
+        /// </summary>
         [HttpPost("verify/{mercadoPagoPaymentId:long}")]
         public async Task<IActionResult> VerifyPayment(long mercadoPagoPaymentId)
         {
-
             try
             {
                 // Obtener el detalle del pago desde MercadoPago
@@ -144,7 +149,7 @@ namespace PaymentMS.Controllers
 
                     try
                     {
-                        await _reservationServiceClient.ConfirmPayment(payment.ReservationId, confirmation);
+                        await _reservationServiceClient.ConfirmPaymentAsync(payment.ReservationId, confirmation);
                     }
                     catch (Exception notifyEx)
                     {
@@ -175,22 +180,16 @@ namespace PaymentMS.Controllers
             }
         }
 
-        // GET: /api/payment/pago-exitoso
+        /// <summary>
+        /// Necesario para verificacion automática del pago en MercadoPago
+        /// </summary>
         [HttpGet("pago-exitoso")]
-        public IActionResult PagoExitoso(
+        public async Task<IActionResult> PagoExitoso( 
                 [FromQuery(Name = "payment_id")] long paymentId,
                 [FromQuery(Name = "external_reference")] string externalReference)
         {
             // Redirigís directamente al nuevo GET que ejecuta VerifyPayment
-            return Redirect($"/api/payment/verify-from-get?payment_id={paymentId}");
-        }
-
-        // GET: /api/payment/verify-from-get
-        [HttpGet("verify-from-get")]
-        public async Task<IActionResult> VerifyFromGet([FromQuery(Name = "payment_id")] long mercadoPagoPaymentId)
-        {
-            // Llamás al mismo servicio que el endpoint POST hace
-            return await VerifyPayment(mercadoPagoPaymentId);
+            return await VerifyPayment(paymentId); 
         }
 
         /// <summary>

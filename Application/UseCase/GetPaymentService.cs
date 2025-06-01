@@ -34,7 +34,6 @@ namespace Application.UseCase
             return payment;
         }
 
-
         public async Task<PaymentResponseDto> GetPaymentResponseDtoById(Guid id)
         {
             var payment = await _paymentQuery.GetPaymentByIdAsync(id);
