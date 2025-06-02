@@ -13,8 +13,8 @@ using Domain.Entities;
 namespace Application.UseCase
 {
     public class UpdatePaymentStatusService : IUpdatePaymentStatusService
-    {
-        private readonly IPaymentCommand _paymentCommand;
+    { 
+        public readonly IPaymentCommand _paymentCommand;
 
         public UpdatePaymentStatusService(IPaymentCommand paymentCommand)
         {
@@ -23,12 +23,7 @@ namespace Application.UseCase
 
         public async Task<bool> UpdatePaymentStatus(UpdatePaymentStatusRequestDto updatePaymentStatusRequestDto)
         {
-            return await UpdatePaymentStatusAsync(updatePaymentStatusRequestDto);
-        }
-
-        public async Task<bool> UpdatePaymentStatusAsync(UpdatePaymentStatusRequestDto updatePaymentStatusRequestDto)
-        {
-            return await _paymentCommand.UpdatePaymentStatusAsync(updatePaymentStatusRequestDto.PaymentId, updatePaymentStatusRequestDto.newStatusId);
+            return await _paymentCommand.UpdatePaymentStatusAsync(updatePaymentStatusRequestDto.PaymentId, updatePaymentStatusRequestDto.NewStatusId);
         }
     }
 }

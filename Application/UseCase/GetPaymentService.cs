@@ -9,7 +9,7 @@ using Domain.Entities;
 
 namespace Application.UseCase
 {
-    public class GetPaymentService : IGetPaymentService
+    public class GetPaymentService : IGetPaymentService   
     {
         private readonly IPaymentQuery _paymentQuery;
 
@@ -23,12 +23,19 @@ namespace Application.UseCase
             return await _paymentQuery.GetAllPaymentsAsync();
         }
 
-        public async Task<PaymentResponseDto> GetPaymentById(Guid id)
+        public async Task<Payment?> GetPaymentByIdAsync(Guid id)
         {
-            return await GetPaymentByIdAsync(id);
+            var payment = await _paymentQuery.GetPaymentByIdAsync(id);
+            if (payment == null)
+            {
+                return null;
+            }
+
+            return payment;
         }
 
-        public async Task<PaymentResponseDto> GetPaymentByIdAsync(Guid id)
+
+        public async Task<PaymentResponseDto> GetPaymentResponseDtoById(Guid id)
         {
             var payment = await _paymentQuery.GetPaymentByIdAsync(id);
 
@@ -39,29 +46,23 @@ namespace Application.UseCase
 
             return new PaymentResponseDto
             {
-                Id = payment.Id,
-                Reference = payment.Reference,
-                ExternalId = payment.ExternalId,
+                PaymentId = payment.PaymentId,
+                ReservationId = payment.ReservationId, 
                 Amount = payment.Amount,
-                Status = payment.Status.ToString(),
-                CheckoutUrl = payment.CheckoutUrl,
-                CreatedAt = payment.CreatedAt
+                Date = payment.Date,
+                PaymentMethodName = payment.PaymentMethod?.Name ?? "",
+                PaymentStatusName = payment.PaymentStatus?.Name ?? "",
             };
         }
 
-        public async Task<Payment> GetPaymentByReservationId(Guid reservationId)
+        public async Task<Payment?> GetPaymentByReservationId(Guid reservationId)
         {
             return await _paymentQuery.GetPaymentByReservationIdAsync(reservationId);
         }
 
-        public async Task<Payment> GetPaymentByReferenceAsync(string reference)
-        {
-            return await _paymentQuery.GetPaymentByReferenceAsync(reference);
-        }
-
         public async Task<List<Payment>> GetPaymentsByMethodId(int methodId)
         {
-            return await _paymentQuery.GetPaymentsByMethodIdAsync(methodId);
+            return  await _paymentQuery.GetPaymentsByMethodIdAsync(methodId);
         }
 
         public async Task<List<Payment>> GetPaymentsByStatusId(int statusId)

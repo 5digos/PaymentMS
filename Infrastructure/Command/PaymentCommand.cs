@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System; 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,8 +13,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Command 
 {
-    public class PaymentCommand : IPaymentCommand
-    {
+    public class PaymentCommand : IPaymentCommand  
+    {  
         private readonly AppDbContext _context;
 
         public PaymentCommand(AppDbContext context)
@@ -21,69 +22,66 @@ namespace Infrastructure.Command
             _context = context;
         }
 
-        public async Task<bool> CreateAsync(Payment payment)
+        public async Task<Guid> CreatePaymentAsync (Guid reservationId, decimal amount, int paymentMethodId)
         {
-            try
+            var payment = new Payment 
             {
-                await _context.Payments.AddAsync(payment);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+                PaymentId = Guid.NewGuid(),
+                ReservationId = reservationId,
+                Amount = amount,
+                Date = DateTime.UtcNow,
+                PaymentStatusId = 1, // Pendiente
+                PaymentMethodId = paymentMethodId,
+            };
+            await _context.Payments.AddAsync(payment);
+            await _context.SaveChangesAsync();
+            return payment.PaymentId;
         }
 
-        public async Task<bool> UpdateAsync(Payment payment)
+        public async Task DeletePaymentAsync(Guid paymentId)
         {
-            try
+            var payment = await _context.Payments.FindAsync(paymentId);
+            if (payment != null)
             {
-                _context.Payments.Update(payment);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        public async Task<bool> DeleteAsync(Guid id)
-        {
-            try
-            {
-                var payment = await _context.Payments.FindAsync(id);
-                if (payment == null)
-                    return false;
-
                 _context.Payments.Remove(payment);
                 await _context.SaveChangesAsync();
-                return true;
             }
-            catch (Exception)
+            else
             {
-                return false;
+                throw new Exception("Payment not found");
             }
         }
 
-        public async Task<bool> UpdatePaymentStatusAsync(Guid paymentId, int statusId)
+        public async Task AddPaymentAsync(Payment payment)
         {
-            try
-            {
-                var payment = await _context.Payments.FindAsync(paymentId);
-                if (payment == null)
-                    return false;
+            await _context.Payments.AddAsync(payment);
+            await _context.SaveChangesAsync();
+        }
 
-                payment.PaymentStatusId = statusId;
-                _context.Payments.Update(payment);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception)
+        public async Task UpdatePaymentAsync(Payment payment) 
+        {
+            _context.Payments.Update(payment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> UpdatePaymentStatusAsync(Guid paymentId, int newStatusId) 
+        {
+            Console.WriteLine($"Buscando PaymentId: {paymentId}");
+
+            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+
+            if (payment == null)
             {
+                Console.WriteLine("No se encontró el pago con ese ID.");
+
                 return false;
             }
+
+            payment.PaymentStatusId = newStatusId;
+            await _context.SaveChangesAsync();
+
+            return true;
+
         }
     }
 }

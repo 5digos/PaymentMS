@@ -11,8 +11,7 @@ namespace Application.Interfaces.IServices
 {
     public interface ICreatePaymentService
     {
-        Task<PaymentResponseDto> CreatePaymentAsync(CreatePaymentRequestDto request);
-        Task<PaymentStatus> GetPaymentStatusAsync(string externalId);
-        Task<Payment> ProcessWebhookAsync(string payload);
-    }
+        Task<Guid> CreatePayment(CreatePaymentRequestDto paymentResponseDto);
+        Task SavePayment(Payment payment );
+    } 
 }

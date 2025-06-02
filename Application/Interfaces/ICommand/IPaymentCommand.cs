@@ -8,11 +8,17 @@ using Domain.Entities;
 
 namespace Application.Interfaces.ICommand
 {
-    public interface IPaymentCommand
+    public interface IPaymentCommand 
     {
-        Task<bool> CreateAsync(Payment payment);
-        Task<bool> UpdateAsync(Payment payment);
-        Task<bool> DeleteAsync(Guid id);
-        Task<bool> UpdatePaymentStatusAsync(Guid paymentId, int statusId);
+        Task<Guid> CreatePaymentAsync(Guid reservationId, decimal amount, int paymentMethodId);
+
+        Task AddPaymentAsync(Payment payment);
+
+        Task DeletePaymentAsync(Guid paymentId);
+
+        Task<bool> UpdatePaymentStatusAsync(Guid paymentId, int newstatusId);
+        Task UpdatePaymentAsync(Payment payment);
+
     }
+
 }
