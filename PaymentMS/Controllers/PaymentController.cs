@@ -50,17 +50,11 @@ namespace PaymentMS.Controllers
 
 
         /// <summary>
-        /// Obtengo una reserva por su ID para efectuar el pago
+        /// Obtengo una reserva por su ID a la cual efectuarle el pago
         /// </summary>
-        [Authorize(Policy = "ActiveUser")]
         [HttpGet("reservation/{id}")]
         public async Task<IActionResult> GetReservationForPaymentById(Guid id)
         {
-            //// Extraer UserId del JWT
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Forbid();
-
             var reservation = await _reservationServiceClient.GetReservationAsync(id); //obtengo reserva ya mapeada para usar en CreatePaymentFromReservation
             if (reservation == null)
             {
@@ -75,17 +69,11 @@ namespace PaymentMS.Controllers
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
-        [Authorize(Policy = "ActiveUser")]
         [HttpPost("from-reservation")]//ReservationSummaryResponse es el que recibimos de reservas y se lo mandamos a MercadoPago, para crear el pago y el checkoutPro
         public async Task<IActionResult> CreatePaymentFromReservation([FromBody] ReservationSummaryResponse dto)
         {
             try
             {
-                //// Extraer UserId del JWT
-                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
-                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                    return Forbid();
-
                 var (totalAmount, lateFee) = _paymentCalculationService.CalculateAmount(dto); // Calculo el total a pagar y la tarifa de retraso
 
                 var title = $"Pago de la Reserva del vehículo:  ";
@@ -126,17 +114,11 @@ namespace PaymentMS.Controllers
         /// </summary>
         /// <param name="mercadoPagoPaymentId"></param>
         /// <returns></returns>
-        [Authorize(Policy = "ActiveUser")]
         [HttpPost("verify/{mercadoPagoPaymentId:long}")]
         public async Task<IActionResult> VerifyPayment(long mercadoPagoPaymentId)
         {
             try
             {
-                //// Extraer UserId del JWT
-                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
-                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                    return Forbid();
-
                 // Obtener el detalle del pago desde MercadoPago
                 var paymentInfoMP = await _mercadoPagoService.GetPaymentInfoAsync(mercadoPagoPaymentId);
                 if (paymentInfoMP == null)
@@ -205,30 +187,21 @@ namespace PaymentMS.Controllers
         /// <param name="paymentId"></param>
         /// <returns></returns>
         /// GET: /api/payment/pago-exitoso
-        [Authorize(Policy = "ActiveUser")]
         [HttpGet("pago-exitoso")]
-        public async Task<IActionResult> PagoExitoso([FromQuery(Name = "payment_id")] long paymentId) //[FromQuery(Name = "external_reference")] string externalReference*/)
+        public async Task<IActionResult> PagoExitoso(
+                [FromQuery(Name = "payment_id")] long paymentId)
+                //[FromQuery(Name = "external_reference")] string externalReference*/)
         {
-            //// Extraer UserId del JWT
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Forbid();
-
-            return await VerifyPayment(paymentId); //return Redirect($"/api/payment/verify-from-get?payment_id={paymentId}"); // Redirigís directamente al nuevo GET que ejecuta VerifyPayment
+            //return Redirect($"/api/payment/verify-from-get?payment_id={paymentId}"); // Redirigís directamente al nuevo GET que ejecuta VerifyPayment
+            return await VerifyPayment(paymentId);
         }
 
         /// <summary>
         /// Obtengo un pago por su ID
         /// </summary>
-        [Authorize(Policy = "ActiveUser")]
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetPaymentById(Guid id)
         {
-            //// Extraer UserId del JWT
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Forbid();
-
             var payment = await _getPaymentService.GetPaymentResponseDtoById(id);
             if (payment == null)
             {
