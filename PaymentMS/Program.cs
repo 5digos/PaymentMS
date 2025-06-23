@@ -11,13 +11,8 @@ using Application.UseCase.Payments;
 using Application.Interfaces.ICommand;
 using Domain.Entities;
 using MercadoPago.Config;
-using Application.Interfaces.IServices.IReservationServices; 
+using Application.Interfaces.IServices.IReservationServices;
 using Infrastructure.HttpClients;
-using Microsoft.AspNetCore.Authentication.JwtBearer;  
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using PaymentMS.Handlers;
-using System.Net.Http.Headers;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +21,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information); // Nivel mínimo
+
+
 
 //Add services to the container
 builder.Services.AddControllers();
@@ -46,6 +43,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 //MercadoPago
 builder.Services.AddScoped<MercadoPagoService>();
 
+
 //Infrastructure services
 builder.Services.AddScoped<IPaymentQuery, PaymentQuery>();
 builder.Services.AddScoped<IPaymentCommand, PaymentCommand>();
@@ -55,6 +53,13 @@ builder.Services.AddScoped<ICreatePaymentService, CreatePaymentService>();
 builder.Services.AddScoped<IGetPaymentService, GetPaymentService>();
 builder.Services.AddScoped<IUpdatePaymentStatusService, UpdatePaymentStatusService>();
 builder.Services.AddScoped<IPaymentCalculationService, PaymentCalculationService>();
+
+var reservationServiceUrl = builder.Configuration["ReservationService:BaseUrl"];
+builder.Services.AddHttpClient<IReservationServiceClient, ReservationServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(reservationServiceUrl);
+});
+
 
 //Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -66,67 +71,25 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(xmlPath);
 });
 
-//TokenConfiguration
-var jwtKey = builder.Configuration["JwtSettings:key"];
-
-if (string.IsNullOrEmpty(jwtKey))
-{
-    throw new Exception("No se encontró 'JwtSettings:key'. Configúralo en User Secrets o Variables de Entorno.");
-}
-
-builder.Services.AddAuthentication(config =>
-{
-    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(config =>
-{
-    config.RequireHttpsMetadata = false;
-    config.SaveToken = true;
-    config.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-    };
-});
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("ActiveUser", policy => policy.RequireClaim("IsActive", "True"));
-});
-
-builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddTransient<BearerTokenHandler>();
-
-//Configurar el HttpClient y asociarle el handler
-builder.Services
-    .AddHttpClient<IReservationServiceClient, ReservationServiceClient>(client =>
-    {
-        client.BaseAddress = new Uri(builder.Configuration["ReservationService:BaseUrl"]);
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/json"));
-    })
-    .AddHttpMessageHandler<BearerTokenHandler>(); 
 
 //CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("PermitirTodo", policy =>
     {
-        builder.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
 
+
+app.UseCors("PermitirTodo");
+
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("La aplicación ha arrancado correctamente"); 
+logger.LogInformation("La aplicación ha arrancado correctamente");
 
 
 app.Use(async (context, next) =>
@@ -152,8 +115,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthentication(); 
 
 app.UseAuthorization();
 

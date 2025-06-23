@@ -1,5 +1,4 @@
-﻿
-using MercadoPago.Config;
+﻿using MercadoPago.Config;
 using MercadoPago.Client.Preference;
 using MercadoPago.Resource.Preference;
 using System.Text.Json;
@@ -13,7 +12,7 @@ public class MercadoPagoService
     private readonly string _accessToken;
     private readonly string _backUrlBase;
 
-    public MercadoPagoService(IConfiguration configuration) 
+    public MercadoPagoService(IConfiguration configuration)
     {
         _accessToken = configuration["MercadoPago:AccessToken"];
         _backUrlBase = configuration["MercadoPago:BackUrlBase"];
@@ -49,13 +48,13 @@ public class MercadoPagoService
 
 
             BackUrls = new PreferenceBackUrlsRequest
-            {  
-                Success = $"{_backUrlBase}/api/payment/pago-exitoso",
-                Failure = $"{_backUrlBase}/api/payment/pago-fallido",
-                Pending = $"{_backUrlBase}/api/payment/pago-pendiente"
+            {
+                Success = "https://95ff-2800-2130-5140-1ca-9e7-cd77-1677-4ecf.ngrok-free.app/verify.html",
+                Failure = "https://95ff-2800-2130-5140-1ca-9e7-cd77-1677-4ecf.ngrok-free.app/failure.html",
+                Pending = "https://95ff-2800-2130-5140-1ca-9e7-cd77-1677-4ecf.ngrok-free.app/pending.html"
             },
             AutoReturn = "approved",
-            ExternalReference = externalReference 
+            ExternalReference = externalReference
         };
 
         Preference preference = await client.CreateAsync(request);
@@ -76,3 +75,4 @@ public class MercadoPagoService
         };
     }
 }
+
