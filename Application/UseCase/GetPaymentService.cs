@@ -9,7 +9,7 @@ using Domain.Entities;
 
 namespace Application.UseCase
 {
-    public class GetPaymentService : IGetPaymentService   
+    public class GetPaymentService : IGetPaymentService
     {
         private readonly IPaymentQuery _paymentQuery;
 
@@ -47,7 +47,7 @@ namespace Application.UseCase
             return new PaymentResponseDto
             {
                 PaymentId = payment.PaymentId,
-                ReservationId = payment.ReservationId, 
+                ReservationId = payment.ReservationId,
                 Amount = payment.Amount,
                 Date = payment.Date,
                 PaymentMethodName = payment.PaymentMethod?.Name ?? "",
@@ -62,12 +62,33 @@ namespace Application.UseCase
 
         public async Task<List<Payment>> GetPaymentsByMethodId(int methodId)
         {
-            return  await _paymentQuery.GetPaymentsByMethodIdAsync(methodId);
+            return await _paymentQuery.GetPaymentsByMethodIdAsync(methodId);
         }
 
         public async Task<List<Payment>> GetPaymentsByStatusId(int statusId)
         {
             return await _paymentQuery.GetPaymentsByStatusIdAsync(statusId);
         }
+
+        public async Task<PaymentResponseDto> GetPaymentDtoByReservationId(Guid id)
+        {
+            var payment = await _paymentQuery.GetPaymentByReservationIdAsync(id);
+
+            if (payment == null)
+            {
+                return null;
+            }
+
+            return new PaymentResponseDto
+            {
+                PaymentId = payment.PaymentId,
+                ReservationId = payment.ReservationId,
+                Amount = payment.Amount,
+                Date = payment.Date,
+                PaymentMethodName = payment.PaymentMethod?.Name ?? "",
+                PaymentStatusName = payment.PaymentStatus?.Name ?? "",
+            };
+        }
+
     }
 }

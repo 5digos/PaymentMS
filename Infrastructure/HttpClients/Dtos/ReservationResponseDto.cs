@@ -10,7 +10,7 @@ namespace Infrastructure.HttpClients.Dtos
     {
         public Guid ReservationId { get; set; }
         public int UserId { get; set; }
-        public Guid VehicleId { get; set; }
+        //public Guid VehicleId { get; set; }
 
         public int PickupBranchOfficeId { get; set; }
         public string PickupBranchOfficeName { get; set; } = null!;

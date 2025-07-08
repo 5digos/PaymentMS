@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Application.Dtos.Response
 {
-    public class ReservationSummaryResponse 
+    public class ReservationSummaryResponse
     {
         public Guid ReservationId { get; set; }
-        public int UserId { get; set; } 
+        public int UserId { get; set; }
         //public Guid VehicleId { get; set; }
 
         //public int PickupBranchOfficeId { get; set; }

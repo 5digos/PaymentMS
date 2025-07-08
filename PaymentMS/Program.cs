@@ -13,6 +13,11 @@ using Domain.Entities;
 using MercadoPago.Config;
 using Application.Interfaces.IServices.IReservationServices;
 using Infrastructure.HttpClients;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using PaymentMS.Handlers;
+using System.Net.Http.Headers;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,11 +50,11 @@ builder.Services.AddScoped<MercadoPagoService>();
 
 
 //Infrastructure services
-builder.Services.AddScoped<IPaymentQuery, PaymentQuery>(); 
+builder.Services.AddScoped<IPaymentQuery, PaymentQuery>();
 builder.Services.AddScoped<IPaymentCommand, PaymentCommand>();
 
 //Application services
-builder.Services.AddScoped<ICreatePaymentService, CreatePaymentService>(); 
+builder.Services.AddScoped<ICreatePaymentService, CreatePaymentService>();
 builder.Services.AddScoped<IGetPaymentService, GetPaymentService>();
 builder.Services.AddScoped<IUpdatePaymentStatusService, UpdatePaymentStatusService>();
 builder.Services.AddScoped<IPaymentCalculationService, PaymentCalculationService>();
@@ -71,6 +76,51 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(xmlPath);
 });
 
+//TokenConfiguration
+var jwtKey = builder.Configuration["JwtSettings:key"];
+
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new Exception("No se encontró 'JwtSettings:key'. Configúralo en User Secrets o Variables de Entorno.");
+}
+
+builder.Services.AddAuthentication(config =>
+{
+    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(config =>
+{
+    config.RequireHttpsMetadata = false;
+    config.SaveToken = true;
+    config.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ActiveUser", policy => policy.RequireClaim("IsActive", "True"));
+});
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddTransient<BearerTokenHandler>();
+
+//Configurar el HttpClient y asociarle el handler
+builder.Services
+    .AddHttpClient<IReservationServiceClient, ReservationServiceClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ReservationService:BaseUrl"]);
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+    })
+    .AddHttpMessageHandler<BearerTokenHandler>();
 
 //CORS
 builder.Services.AddCors(options =>
@@ -113,7 +163,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization(); 
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseCors("AllowAll");
 

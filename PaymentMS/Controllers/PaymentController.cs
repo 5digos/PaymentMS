@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Application.Exceptions;
+﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Application.Interfaces.IServices;
@@ -7,8 +6,6 @@ using Application.Dtos.Request;
 using Application.Dtos.Response;
 using Domain.Entities;
 using Application.Interfaces.IServices.IReservationServices;
-using Application.UseCase;
-using Infrastructure.HttpClients;
 using Application.Interfaces.ICommand;
 using Infrastructure.HttpClients.Dtos;
 using System.Text.Json;
@@ -27,8 +24,10 @@ namespace PaymentMS.Controllers
         private readonly IReservationServiceClient _reservationServiceClient;
         private readonly IPaymentCommand _paymentCommand;
         private readonly ILogger<PaymentController> _logger;
+        private readonly string _baseUrl;
 
         public PaymentController(
+            IConfiguration configuration,
             ICreatePaymentService createPaymentService,
             IGetPaymentService getPaymentService,
             IUpdatePaymentStatusService updatePaymentService,
@@ -46,15 +45,23 @@ namespace PaymentMS.Controllers
             _reservationServiceClient = reservationServiceClient;
             _paymentCommand = paymentCommand;
             _logger = logger;
+            _baseUrl = configuration["MercadoPago:BaseUrl"];
         }
 
 
         /// <summary>
         /// Obtengo una reserva por su ID a la cual efectuarle el pago
         /// </summary>
+        //[Authorize(Policy = "ActiveUser")]
+        [AllowAnonymous]
         [HttpGet("reservation/{id}")]
         public async Task<IActionResult> GetReservationForPaymentById(Guid id)
         {
+            ////// Extraer UserId del JWT
+            //var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
+            //if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            //    return Forbid();
+
             var reservation = await _reservationServiceClient.GetReservationAsync(id); //obtengo reserva ya mapeada para usar en CreatePaymentFromReservation
             if (reservation == null)
             {
@@ -69,11 +76,18 @@ namespace PaymentMS.Controllers
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
+        //[Authorize(Policy = "ActiveUser")]
+        [AllowAnonymous]
         [HttpPost("from-reservation")]//ReservationSummaryResponse es el que recibimos de reservas y se lo mandamos a MercadoPago, para crear el pago y el checkoutPro
         public async Task<IActionResult> CreatePaymentFromReservation([FromBody] ReservationSummaryResponse dto)
         {
             try
             {
+                ////// Extraer UserId del JWT
+                //var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
+                //if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                //    return Forbid();
+
                 var (totalAmount, lateFee) = _paymentCalculationService.CalculateAmount(dto); // Calculo el total a pagar y la tarifa de retraso
 
                 var title = $"Pago de la Reserva del vehículo:  ";
@@ -104,6 +118,7 @@ namespace PaymentMS.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error en CreatePaymentFromReservation");
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -114,13 +129,21 @@ namespace PaymentMS.Controllers
         /// </summary>
         /// <param name="mercadoPagoPaymentId"></param>
         /// <returns></returns>
+        //[Authorize(Policy = "ActiveUser")]
+        [AllowAnonymous]
         [HttpPost("verify/{mercadoPagoPaymentId:long}")]
         public async Task<IActionResult> VerifyPayment(long mercadoPagoPaymentId)
         {
             try
             {
+                ////// Extraer UserId del JWT
+                //var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
+                //if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                //    return Forbid();
+
                 // Obtener el detalle del pago desde MercadoPago
                 var paymentInfoMP = await _mercadoPagoService.GetPaymentInfoAsync(mercadoPagoPaymentId);
+                _logger.LogInformation($"PaymentInfo: {paymentInfoMP}");
                 if (paymentInfoMP == null)
                     return NotFound("No se encontró información del pago en MercadoPago");
 
@@ -166,13 +189,15 @@ namespace PaymentMS.Controllers
 
                 await _paymentCommand.UpdatePaymentAsync(payment);
                 return Ok(
-                        $"-Id del pago en bd:  {paymentId}\n" +
-                        $"-Id de la reserva asociada a este pago: {payment.ReservationId}\n" +
-                        $"-Estado del pago actualizado a '{paymentInfoMP.Status}'.\n" +
-                        $"-Pago total: {payment.Amount}.\n" +
-                        $"-Tarifa adicional cobrada por demora: {lateFee}.\n" +
-                        $"-Transaccion Id de MercadoPago: {paymentInfoMP.TransactionId}."
-                        );
+                    new
+                    {
+                        PaymentId = paymentId,
+                        ReservationId = payment.ReservationId,
+                        //Status = paymentInfoMP.Status,
+                        Amount = payment.Amount,
+                        LateFee = lateFee,
+                        TransactionId = paymentInfoMP.TransactionId
+                    });
             }
             catch (Exception ex)
             {
@@ -187,36 +212,39 @@ namespace PaymentMS.Controllers
         /// <param name="paymentId"></param>
         /// <returns></returns>
         /// GET: /api/payment/pago-exitoso
+        //[Authorize(Policy = "ActiveUser")]
+        [AllowAnonymous]
         [HttpGet("pago-exitoso")]
         public async Task<IActionResult> PagoExitoso(
                 [FromQuery(Name = "payment_id")] long paymentId)
-                //[FromQuery(Name = "external_reference")] string externalReference*/)
         {
-            //return Redirect($"/api/payment/verify-from-get?payment_id={paymentId}"); // Redirigís directamente al nuevo GET que ejecuta VerifyPayment
-            return await VerifyPayment(paymentId);
+            //var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
+            //if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            //    return Forbid();
+
+            //return await VerifyPayment(paymentId);
+            return Redirect($"{_baseUrl}/payment-success.html?payment_id={paymentId}");
         }
 
         /// <summary>
-        /// Obtengo un pago por su ID
+        /// Obtengo un pago por el ID de la reserva
         /// </summary>
+        //[Authorize(Policy = "ActiveUser")]
+        [AllowAnonymous]
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetPaymentById(Guid id)
+        public async Task<IActionResult> GetPaymentByReservationId(Guid id)
         {
-            var payment = await _getPaymentService.GetPaymentResponseDtoById(id);
+            ////// Extraer UserId del JWT
+            //var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "UserId");
+            //if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            //    return Forbid();
+
+            var payment = await _getPaymentService.GetPaymentDtoByReservationId(id);
             if (payment == null)
             {
                 return NotFound();
             }
             return Ok(payment);
         }
-
-        //// GET: /api/payment/verify-from-get
-        //[HttpGet("verify-from-get")]
-        //public async Task<IActionResult> VerifyFromGet([FromQuery(Name = "payment_id")] long mercadoPagoPaymentId)
-        //{
-        //    // Llamás al mismo servicio que el endpoint POST hace
-        //    return await VerifyPayment(paymentId);;
-        //}
-
     }
 }

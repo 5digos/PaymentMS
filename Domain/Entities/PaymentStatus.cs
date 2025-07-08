@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    public enum PaymentStatus
+    public class PaymentStatus
     {
-        Pending = 1,
-        Completed = 2,
-        Failed = 3,
-        Cancelled = 4
+        public int Id { get; set; } // 1 - Pending, 2 - Aprobado, 3 - Rechazado
+        public string Name { get; set; }
+        public IList<Payment> Payments { get; set; }
     }
 }

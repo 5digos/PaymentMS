@@ -10,6 +10,5 @@ namespace Application.Interfaces.IServices
     public interface IUpdatePaymentStatusService
     {
         Task<bool> UpdatePaymentStatus(UpdatePaymentStatusRequestDto updatePaymentStatusRequestDto);
-        Task<bool> UpdatePaymentStatusAsync(UpdatePaymentStatusRequestDto updatePaymentStatusRequestDto);
     }
 }

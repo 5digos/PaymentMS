@@ -16,6 +16,7 @@ namespace Application.Interfaces.IServices
         Task<List<Payment>> GetPaymentsByMethodId(int methodId);
         Task<List<Payment>> GetAllPayments();
         Task<Payment?> GetPaymentByIdAsync(Guid id);
+        Task<PaymentResponseDto> GetPaymentDtoByReservationId(Guid reservationId);
 
     }
 }
